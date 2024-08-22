@@ -23,3 +23,5 @@ vendor/
 .vscode
 
 local_db.txt
+
+bin/gophermart
