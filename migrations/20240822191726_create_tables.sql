@@ -18,7 +18,7 @@ CREATE TABLE "order" (
     user_id integer REFERENCES "user"(id),
     number text UNIQUE NOT NULL CHECK (number SIMILAR TO '[0-9]+'),
     status varchar(16) NOT NULL CHECK (status IN ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED')),
-    accrual numeric NOT NULL CHECK (accrual >= 0),
+    accrual numeric CHECK (accrual >= 0),
     uploaded_at timestamp NOT NULL DEFAULT now()
 );
 
@@ -35,9 +35,9 @@ CREATE TABLE withdrawal (
 -- +goose StatementBegin
 DROP TABLE withdrawal;
 
-DROP TABLE order;
+DROP TABLE "order";
 
 DROP TABLE balance;
 
-DROP TABLE user;
+DROP TABLE "user";
 -- +goose StatementEnd
