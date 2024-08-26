@@ -13,10 +13,10 @@ type User struct {
 }
 
 type Balance struct {
-	ID        uint
-	UserID    uint
-	Current   float64
-	Withdrawn float64
+	ID        uint    `json:"-"`
+	UserID    uint    `json:"-"`
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
 }
 
 type Order struct {
@@ -43,11 +43,11 @@ func (o Order) MarshalJSON() ([]byte, error) {
 }
 
 type Withdrawal struct {
-	ID          uint
-	UserID      uint
-	OrderNumber string
-	Sum         float64
-	ProcessedAt *time.Time
+	ID          uint       `json:"-"`
+	UserID      uint       `json:"-"`
+	OrderNumber string     `json:"order"`
+	Sum         float64    `json:"sum"`
+	ProcessedAt *time.Time `json:"processed_at,omitempty"`
 }
 
 var (
@@ -58,4 +58,7 @@ var (
 	ErrOrderUploaded              = errors.New("order number has already been uploaded by this user")
 	ErrOrderUploadedByAnotherUser = errors.New("order number has already been uploaded by this user")
 	ErrInvalidOrderNumberFormat   = errors.New("invalid order number format")
+
+	ErrInsufficientFunds = errors.New("there are insufficient funds in the account")
+	ErrInvalidOrder      = errors.New("invalid order number")
 )

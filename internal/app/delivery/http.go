@@ -259,6 +259,7 @@ func (ah *AppHandler) GetOrders(w http.ResponseWriter, r http.Request) {
 		)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
 	if len(orders) == 0 {
@@ -271,6 +272,143 @@ func (ah *AppHandler) GetOrders(w http.ResponseWriter, r http.Request) {
 	err = enc.Encode(orders)
 	if err != nil {
 		logger.Error("Failed to encode orders",
+			zap.Error(err),
+		)
+	}
+}
+
+func (ah *AppHandler) GetBalance(w http.ResponseWriter, r http.Request) {
+	logger := loggerInternal.GetContextLogger(r.Context())
+
+	logger.Info("Getting balance")
+
+	userID, err := getContextUserID(r.Context())
+	if err != nil {
+		logger.Warn("No user ID",
+			zap.Any(RequestBodyKey, r.Body),
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	balance, err := ah.AppUsecase.GetBalance(userID)
+	if err != nil {
+		logger.Warn("Failed to get balance",
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(balance)
+	if err != nil {
+		logger.Error("Failed to encode balance",
+			zap.Error(err),
+		)
+	}
+}
+
+func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r http.Request) {
+	logger := loggerInternal.GetContextLogger(r.Context())
+
+	logger.Info("Getting balance")
+
+	userID, err := getContextUserID(r.Context())
+	if err != nil {
+		logger.Warn("No user ID",
+			zap.Any(RequestBodyKey, r.Body),
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	contentType := r.Header.Get(ContentTypeKey)
+	if !strings.Contains(contentType, ApplicationJSONKey) {
+		logger.Warn("Request header \"Content-Type\" does not contain \"application/json\"",
+			zap.Any(HeaderKey, r.Header),
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("Header '%s' is not contain '%s'", ContentTypeKey, ApplicationJSONKey)))
+		return
+	}
+
+	type Request struct {
+		Order string  `json:"order"`
+		Sum   float64 `json:"sum"`
+	}
+
+	var req Request
+	dec := json.NewDecoder(r.Body)
+	err = dec.Decode(&req)
+	if err != nil {
+		logger.Warn("Failed to decode request body",
+			zap.Any(RequestBodyKey, r.Body),
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Request body could not be deserialized"))
+		return
+	}
+
+	_, err = ah.AppUsecase.CreateWithdraw(userID, req.Order, req.Sum)
+	if err != nil {
+		logger.Warn("Failed to create withdraw",
+			zap.Error(err),
+		)
+		switch err {
+		case app.ErrInsufficientFunds:
+			w.WriteHeader(http.StatusPaymentRequired)
+		case app.ErrInvalidOrder:
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r http.Request) {
+	logger := loggerInternal.GetContextLogger(r.Context())
+
+	logger.Info("Getting balance")
+
+	userID, err := getContextUserID(r.Context())
+	if err != nil {
+		logger.Warn("No user ID",
+			zap.Any(RequestBodyKey, r.Body),
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	withdrawals, err := ah.AppUsecase.GetWithdrawals(userID)
+	if err != nil {
+		logger.Warn("Failed to get withdrawals",
+			zap.Error(err),
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if len(withdrawals) == 0 {
+		logger.Warn("No withdrawals")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	enc := json.NewEncoder(w)
+	err = enc.Encode(withdrawals)
+	if err != nil {
+		logger.Error("Failed to encode withdrawals",
 			zap.Error(err),
 		)
 	}
