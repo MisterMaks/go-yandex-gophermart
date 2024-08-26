@@ -50,78 +50,78 @@ func (mr *MockAppUsecaseInterfaceMockRecorder) BuildJWTString(userID interface{}
 }
 
 // CreateOrder mocks base method.
-func (m *MockAppUsecaseInterface) CreateOrder(number string) (*app.Order, error) {
+func (m *MockAppUsecaseInterface) CreateOrder(userID uint, number string) (*app.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOrder", number)
+	ret := m.ctrl.Call(m, "CreateOrder", userID, number)
 	ret0, _ := ret[0].(*app.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateOrder indicates an expected call of CreateOrder.
-func (mr *MockAppUsecaseInterfaceMockRecorder) CreateOrder(number interface{}) *gomock.Call {
+func (mr *MockAppUsecaseInterfaceMockRecorder) CreateOrder(userID, number interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateOrder), number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateOrder), userID, number)
 }
 
 // CreateWithdraw mocks base method.
-func (m *MockAppUsecaseInterface) CreateWithdraw(orderNumber string, sum float64) (*app.Withdrawal, error) {
+func (m *MockAppUsecaseInterface) CreateWithdraw(userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWithdraw", orderNumber, sum)
+	ret := m.ctrl.Call(m, "CreateWithdraw", userID, orderNumber, sum)
 	ret0, _ := ret[0].(*app.Withdrawal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateWithdraw indicates an expected call of CreateWithdraw.
-func (mr *MockAppUsecaseInterfaceMockRecorder) CreateWithdraw(orderNumber, sum interface{}) *gomock.Call {
+func (mr *MockAppUsecaseInterfaceMockRecorder) CreateWithdraw(userID, orderNumber, sum interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdraw", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateWithdraw), orderNumber, sum)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdraw", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateWithdraw), userID, orderNumber, sum)
 }
 
 // GetBalance mocks base method.
-func (m *MockAppUsecaseInterface) GetBalance() (*app.Balance, error) {
+func (m *MockAppUsecaseInterface) GetBalance(userID uint) (*app.Balance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBalance")
+	ret := m.ctrl.Call(m, "GetBalance", userID)
 	ret0, _ := ret[0].(*app.Balance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBalance indicates an expected call of GetBalance.
-func (mr *MockAppUsecaseInterfaceMockRecorder) GetBalance() *gomock.Call {
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetBalance(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetBalance))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetBalance), userID)
 }
 
 // GetOrders mocks base method.
-func (m *MockAppUsecaseInterface) GetOrders() ([]*app.Order, error) {
+func (m *MockAppUsecaseInterface) GetOrders(userID uint) ([]*app.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOrders")
+	ret := m.ctrl.Call(m, "GetOrders", userID)
 	ret0, _ := ret[0].([]*app.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOrders indicates an expected call of GetOrders.
-func (mr *MockAppUsecaseInterfaceMockRecorder) GetOrders() *gomock.Call {
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetOrders(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetOrders))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetOrders), userID)
 }
 
 // GetWithdrawals mocks base method.
-func (m *MockAppUsecaseInterface) GetWithdrawals() ([]*app.Withdrawal, error) {
+func (m *MockAppUsecaseInterface) GetWithdrawals(userID uint) ([]*app.Withdrawal, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWithdrawals")
+	ret := m.ctrl.Call(m, "GetWithdrawals", userID)
 	ret0, _ := ret[0].([]*app.Withdrawal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetWithdrawals indicates an expected call of GetWithdrawals.
-func (mr *MockAppUsecaseInterfaceMockRecorder) GetWithdrawals() *gomock.Call {
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetWithdrawals(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawals", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetWithdrawals))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawals", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetWithdrawals), userID)
 }
 
 // Login mocks base method.

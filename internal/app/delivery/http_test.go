@@ -11,6 +11,10 @@ import (
 	"testing"
 )
 
+const (
+	TestHost string = "http://example.com"
+)
+
 func TestAppHandler_Register(t *testing.T) {
 	login := "login"
 	password := "password"
@@ -129,7 +133,7 @@ func TestAppHandler_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bodyReader := bytes.NewReader(tt.request.body)
-			req := httptest.NewRequest(http.MethodPost, "http://example.com/api/user/register", bodyReader)
+			req := httptest.NewRequest(http.MethodPost, TestHost+"/api/user/register", bodyReader)
 			req.Header.Add(ContentTypeKey, tt.request.contentType)
 
 			w := httptest.NewRecorder()
@@ -261,7 +265,7 @@ func TestAppHandler_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bodyReader := bytes.NewReader(tt.request.body)
-			req := httptest.NewRequest(http.MethodPost, "http://example.com/api/user/login", bodyReader)
+			req := httptest.NewRequest(http.MethodPost, TestHost+"/api/user/login", bodyReader)
 			req.Header.Add(ContentTypeKey, tt.request.contentType)
 
 			w := httptest.NewRecorder()
