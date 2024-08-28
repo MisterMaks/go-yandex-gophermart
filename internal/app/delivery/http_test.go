@@ -298,9 +298,9 @@ func TestAppHandler_Login(t *testing.T) {
 
 func TestAppHandler_CreateOrder(t *testing.T) {
 	userID := uint(1)
-	newOrder := `12345`
-	existedOrder := `11111`
-	someoneElsesOrder := `22222`
+	orderNumber := `12345`
+	existedOrderNumber := `11111`
+	someoneElsesOrderNumber := `22222`
 	invalidOrderNumberFormat := `aaaaa`
 
 	accrual := float64(100)
@@ -308,7 +308,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 	order := &app.Order{
 		ID:         1,
 		UserID:     userID,
-		Number:     newOrder,
+		Number:     orderNumber,
 		Status:     "NEW",
 		Accrual:    &accrual,
 		UploadedAt: time.Now(),
@@ -333,7 +333,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			name: "valid data (new order)",
 			request: request{
 				contentType: TextPlainKey,
-				body:        []byte(newOrder),
+				body:        []byte(orderNumber),
 				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
@@ -344,7 +344,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			name: "valid data (existed order)",
 			request: request{
 				contentType: TextPlainKey,
-				body:        []byte(existedOrder),
+				body:        []byte(existedOrderNumber),
 				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
@@ -355,7 +355,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			name: "invalid " + ContentTypeKey,
 			request: request{
 				contentType: "invalid " + ContentTypeKey,
-				body:        []byte(newOrder),
+				body:        []byte(orderNumber),
 				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
@@ -366,7 +366,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			name: "unauthorized",
 			request: request{
 				contentType: TextPlainKey,
-				body:        []byte(newOrder),
+				body:        []byte(orderNumber),
 				ctx:         context.Background(),
 			},
 			want: want{
@@ -377,7 +377,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			name: "someone else's order",
 			request: request{
 				contentType: TextPlainKey,
-				body:        []byte(someoneElsesOrder),
+				body:        []byte(someoneElsesOrderNumber),
 				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
@@ -406,9 +406,9 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateOrder(userID, newOrder).Return(order, nil)
-	m.EXPECT().CreateOrder(userID, existedOrder).Return(nil, app.ErrOrderUploaded)
-	m.EXPECT().CreateOrder(userID, someoneElsesOrder).Return(nil, app.ErrOrderUploadedByAnotherUser)
+	m.EXPECT().CreateOrder(userID, orderNumber).Return(order, nil)
+	m.EXPECT().CreateOrder(userID, existedOrderNumber).Return(nil, app.ErrOrderUploaded)
+	m.EXPECT().CreateOrder(userID, someoneElsesOrderNumber).Return(nil, app.ErrOrderUploadedByAnotherUser)
 	m.EXPECT().CreateOrder(userID, invalidOrderNumberFormat).Return(nil, app.ErrInvalidOrderNumberFormat)
 
 	appHandler := NewAppHandler(m)
@@ -653,6 +653,126 @@ func TestAppHandler_GetBalance(t *testing.T) {
 				require.NoError(t, err)
 				assert.JSONEq(t, tt.want.responseBodyStr, string(resBody))
 			}
+		})
+	}
+}
+
+func TestAppHandler_CreateWithdraw(t *testing.T) {
+	userID := uint(1)
+	userIDWithInsufficientFunds := uint(2)
+	orderNumber := `12345`
+	invalidOrderNumber := `11111`
+	sum := float64(100)
+
+	withdrawal := &app.Withdrawal{
+		ID:          1,
+		UserID:      userID,
+		OrderNumber: orderNumber,
+		Sum:         sum,
+		ProcessedAt: time.Now(),
+	}
+
+	type request struct {
+		contentType string
+		body        []byte
+		ctx         context.Context
+	}
+
+	type want struct {
+		statusCode int
+	}
+
+	tests := []struct {
+		name    string
+		request request
+		want    want
+	}{
+		{
+			name: "valid data",
+			request: request{
+				contentType: ApplicationJSONKey,
+				body:        []byte(fmt.Sprintf(`{"order": "%s", "sum": %f}`, orderNumber, sum)),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "unauthorized",
+			request: request{
+				contentType: ApplicationJSONKey,
+				body:        []byte(fmt.Sprintf(`{"order": "%s", "sum": %f}`, orderNumber, sum)),
+				ctx:         context.Background(),
+			},
+			want: want{
+				statusCode: http.StatusUnauthorized,
+			},
+		},
+		{
+			name: "invalid order",
+			request: request{
+				contentType: ApplicationJSONKey,
+				body:        []byte(fmt.Sprintf(`{"order": "%s", "sum": %f}`, invalidOrderNumber, sum)),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusUnprocessableEntity,
+			},
+		},
+		{
+			name: "insufficient funds",
+			request: request{
+				contentType: ApplicationJSONKey,
+				body:        []byte(fmt.Sprintf(`{"order": "%s", "sum": %f}`, orderNumber, sum)),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userIDWithInsufficientFunds),
+			},
+			want: want{
+				statusCode: http.StatusPaymentRequired,
+			},
+		},
+		{
+			name: "invalid " + ContentTypeKey,
+			request: request{
+				contentType: "invalid " + ContentTypeKey,
+				body:        []byte(fmt.Sprintf(`{"order": "%s", "sum": %f}`, orderNumber, sum)),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mock.NewMockAppUsecaseInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().CreateWithdraw(userID, orderNumber, sum).Return(withdrawal, nil)
+	m.EXPECT().CreateWithdraw(userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds)
+	m.EXPECT().CreateWithdraw(userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrder)
+
+	appHandler := NewAppHandler(m)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bodyReader := bytes.NewReader(tt.request.body)
+			req := httptest.NewRequest(http.MethodPost, TestHost+"/api/user/balance/withdraw", bodyReader)
+			req.Header.Add(ContentTypeKey, tt.request.contentType)
+			req = req.WithContext(tt.request.ctx)
+
+			w := httptest.NewRecorder()
+
+			appHandler.CreateWithdraw(w, req)
+
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode, "Invalid status code")
 		})
 	}
 }
