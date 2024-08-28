@@ -268,6 +268,8 @@ func (ah *AppHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set(ContentTypeKey, ApplicationJSONKey)
+
 	enc := json.NewEncoder(w)
 	err = enc.Encode(orders)
 	if err != nil {
@@ -301,6 +303,8 @@ func (ah *AppHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	w.Header().Set(ContentTypeKey, ApplicationJSONKey)
 
 	enc := json.NewEncoder(w)
 	err = enc.Encode(balance)
@@ -404,6 +408,8 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
+	w.Header().Set(ContentTypeKey, ApplicationJSONKey)
 
 	enc := json.NewEncoder(w)
 	err = enc.Encode(withdrawals)
