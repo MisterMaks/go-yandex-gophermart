@@ -178,7 +178,7 @@ func (ah *AppHandler) Login(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: AccessTokenKey, Value: accessToken, Path: "/"})
 }
 
-func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r http.Request) {
+func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Create order")
@@ -237,7 +237,7 @@ func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (ah *AppHandler) GetOrders(w http.ResponseWriter, r http.Request) {
+func (ah *AppHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Getting orders")
@@ -277,7 +277,7 @@ func (ah *AppHandler) GetOrders(w http.ResponseWriter, r http.Request) {
 	}
 }
 
-func (ah *AppHandler) GetBalance(w http.ResponseWriter, r http.Request) {
+func (ah *AppHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Getting balance")
@@ -311,7 +311,7 @@ func (ah *AppHandler) GetBalance(w http.ResponseWriter, r http.Request) {
 	}
 }
 
-func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r http.Request) {
+func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Getting balance")
@@ -374,7 +374,7 @@ func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r http.Request) {
+func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Getting balance")
