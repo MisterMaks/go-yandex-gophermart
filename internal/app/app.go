@@ -43,11 +43,25 @@ func (o Order) MarshalJSON() ([]byte, error) {
 }
 
 type Withdrawal struct {
-	ID          uint       `json:"-"`
-	UserID      uint       `json:"-"`
-	OrderNumber string     `json:"order"`
-	Sum         float64    `json:"sum"`
-	ProcessedAt *time.Time `json:"processed_at,omitempty"`
+	ID          uint      `json:"-"`
+	UserID      uint      `json:"-"`
+	OrderNumber string    `json:"order"`
+	Sum         float64   `json:"sum"`
+	ProcessedAt time.Time `json:"processed_at"`
+}
+
+func (w Withdrawal) MarshalJSON() ([]byte, error) {
+	type WithdrawalAlias Withdrawal
+
+	aliasValue := struct {
+		WithdrawalAlias
+		ProcessedAt string `json:"processed_at"`
+	}{
+		WithdrawalAlias: WithdrawalAlias(w),
+		ProcessedAt:     w.ProcessedAt.Format(time.RFC3339),
+	}
+
+	return json.Marshal(aliasValue)
 }
 
 var (
