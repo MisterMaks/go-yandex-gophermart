@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"bytes"
+	"context"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/mock"
 	"github.com/golang/mock/gomock"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 const (
@@ -287,6 +289,141 @@ func TestAppHandler_Login(t *testing.T) {
 
 				assert.True(t, accessTokenOk, "Invalid cookies")
 			}
+		})
+	}
+}
+
+func TestAppHandler_CreateOrder(t *testing.T) {
+	userID := uint(1)
+	newOrder := `12345`
+	existedOrder := `11111`
+	someoneElsesOrder := `22222`
+	invalidOrderNumberFormat := `aaaaa`
+
+	accrual := float64(100)
+
+	order := &app.Order{
+		ID:         1,
+		UserID:     userID,
+		Number:     newOrder,
+		Status:     "NEW",
+		Accrual:    &accrual,
+		UploadedAt: time.Now(),
+	}
+
+	type request struct {
+		contentType string
+		body        []byte
+		ctx         context.Context
+	}
+
+	type want struct {
+		statusCode int
+	}
+
+	tests := []struct {
+		name    string
+		request request
+		want    want
+	}{
+		{
+			name: "valid data (new order)",
+			request: request{
+				contentType: TextPlainKey,
+				body:        []byte(newOrder),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusCreated,
+			},
+		},
+		{
+			name: "valid data (existed order)",
+			request: request{
+				contentType: TextPlainKey,
+				body:        []byte(existedOrder),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "invalid " + ContentTypeKey,
+			request: request{
+				contentType: "invalid " + ContentTypeKey,
+				body:        []byte(newOrder),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
+		{
+			name: "unauthorized",
+			request: request{
+				contentType: TextPlainKey,
+				body:        []byte(newOrder),
+				ctx:         context.Background(),
+			},
+			want: want{
+				statusCode: http.StatusUnauthorized,
+			},
+		},
+		{
+			name: "someone else's order",
+			request: request{
+				contentType: TextPlainKey,
+				body:        []byte(someoneElsesOrder),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusConflict,
+			},
+		},
+		{
+			name: "invalid order number format",
+			request: request{
+				contentType: TextPlainKey,
+				body:        []byte(invalidOrderNumberFormat),
+				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode: http.StatusUnprocessableEntity,
+			},
+		},
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mock.NewMockAppUsecaseInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().CreateOrder(userID, newOrder).Return(order, nil)
+	m.EXPECT().CreateOrder(userID, existedOrder).Return(nil, app.ErrOrderUploaded)
+	m.EXPECT().CreateOrder(userID, someoneElsesOrder).Return(nil, app.ErrOrderUploadedByAnotherUser)
+	m.EXPECT().CreateOrder(userID, invalidOrderNumberFormat).Return(nil, app.ErrInvalidOrderNumberFormat)
+
+	appHandler := NewAppHandler(m)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bodyReader := bytes.NewReader(tt.request.body)
+			req := httptest.NewRequest(http.MethodPost, TestHost+"/api/user/orders", bodyReader)
+			req.Header.Add(ContentTypeKey, tt.request.contentType)
+			req = req.WithContext(tt.request.ctx)
+
+			w := httptest.NewRecorder()
+
+			appHandler.CreateOrder(w, req)
+
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode, "Invalid status code")
 		})
 	}
 }
