@@ -432,24 +432,47 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 }
 
 func TestAppHandler_GetOrders(t *testing.T) {
-	userIDWithOrders := uint(1)
+	userID := uint(1)
 	userIDWithoutOrders := uint(2)
 
 	accrual := float64(100)
 
 	order := &app.Order{
 		ID:         1,
-		UserID:     userIDWithOrders,
+		UserID:     userID,
 		Number:     `12345`,
 		Status:     "NEW",
 		Accrual:    &accrual,
 		UploadedAt: time.Now(),
 	}
-	orderStr := fmt.Sprintf(`[{"number": "%s", "status": "%s", "accrual": %f, "uploaded_at": "%s"}]`,
+	orderWithoutAccrual := &app.Order{
+		ID:         2,
+		UserID:     userID,
+		Number:     `67890`,
+		Status:     "NEW",
+		Accrual:    nil,
+		UploadedAt: time.Now(),
+	}
+	ordersStr := fmt.Sprintf(`[
+	{
+		"number": "%s", 
+		"status": "%s", 
+		"accrual": %f, 
+		"uploaded_at": "%s"
+	},
+	{
+		"number": "%s", 
+		"status": "%s",
+		"uploaded_at": "%s"
+	}
+]`,
 		order.Number,
 		order.Status,
 		*order.Accrual,
 		order.UploadedAt.Format(time.RFC3339),
+		orderWithoutAccrual.Number,
+		orderWithoutAccrual.Status,
+		orderWithoutAccrual.UploadedAt.Format(time.RFC3339),
 	)
 
 	type request struct {
@@ -470,12 +493,12 @@ func TestAppHandler_GetOrders(t *testing.T) {
 		{
 			name: "user with orders",
 			request: request{
-				ctx: context.WithValue(context.Background(), UserIDKey, userIDWithOrders),
+				ctx: context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
 				statusCode:      http.StatusOK,
 				contentType:     ApplicationJSONKey,
-				responseBodyStr: orderStr,
+				responseBodyStr: ordersStr,
 			},
 		},
 		{
@@ -511,7 +534,7 @@ func TestAppHandler_GetOrders(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().GetOrders(userIDWithOrders).Return([]*app.Order{order}, nil)
+	m.EXPECT().GetOrders(userID).Return([]*app.Order{order, orderWithoutAccrual}, nil)
 	m.EXPECT().GetOrders(userIDWithoutOrders).Return([]*app.Order{}, nil)
 
 	appHandler := NewAppHandler(m)
@@ -617,6 +640,113 @@ func TestAppHandler_GetBalance(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			appHandler.GetBalance(w, req)
+
+			res := w.Result()
+
+			assert.Equal(t, tt.want.statusCode, res.StatusCode, "Invalid status code")
+
+			if res.StatusCode == http.StatusOK {
+				assert.Contains(t, res.Header.Values(ContentTypeKey), tt.want.contentType)
+
+				defer res.Body.Close()
+				resBody, err := io.ReadAll(res.Body)
+				require.NoError(t, err)
+				assert.JSONEq(t, tt.want.responseBodyStr, string(resBody))
+			}
+		})
+	}
+}
+
+func TestAppHandler_GetWithdrawals(t *testing.T) {
+	userID := uint(1)
+	userIDWithoutWithdrawals := uint(2)
+
+	withdrawal := &app.Withdrawal{
+		ID:          1,
+		UserID:      userID,
+		OrderNumber: "12345",
+		Sum:         100,
+		ProcessedAt: time.Now(),
+	}
+	withdrawalsStr := fmt.Sprintf(`[{"order": "%s", "sum": %f, "processed_at": "%s"}]`,
+		withdrawal.OrderNumber,
+		withdrawal.Sum,
+		withdrawal.ProcessedAt.Format(time.RFC3339),
+	)
+
+	type request struct {
+		ctx context.Context
+	}
+
+	type want struct {
+		statusCode      int
+		contentType     string
+		responseBodyStr string
+	}
+
+	tests := []struct {
+		name    string
+		request request
+		want    want
+	}{
+		{
+			name: "user with withdrawals",
+			request: request{
+				ctx: context.WithValue(context.Background(), UserIDKey, userID),
+			},
+			want: want{
+				statusCode:      http.StatusOK,
+				contentType:     ApplicationJSONKey,
+				responseBodyStr: withdrawalsStr,
+			},
+		},
+		{
+			name: "user without withdrawals",
+			request: request{
+				ctx: context.WithValue(context.Background(), UserIDKey, userIDWithoutWithdrawals),
+			},
+			want: want{
+				statusCode:      http.StatusNoContent,
+				contentType:     "",
+				responseBodyStr: "",
+			},
+		},
+		{
+			name: "unauthorized",
+			request: request{
+				ctx: context.Background(),
+			},
+			want: want{
+				statusCode:      http.StatusUnauthorized,
+				contentType:     "",
+				responseBodyStr: "",
+			},
+		},
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mock.NewMockAppUsecaseInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().GetWithdrawals(userID).Return([]*app.Withdrawal{withdrawal}, nil)
+	m.EXPECT().GetWithdrawals(userIDWithoutWithdrawals).Return([]*app.Withdrawal{}, nil)
+
+	appHandler := NewAppHandler(m)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bodyReader := bytes.NewReader(nil)
+			req := httptest.NewRequest(http.MethodGet, TestHost+"/api/user/withdrawals", bodyReader)
+			req = req.WithContext(tt.request.ctx)
+
+			w := httptest.NewRecorder()
+
+			appHandler.GetWithdrawals(w, req)
 
 			res := w.Result()
 
