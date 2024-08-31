@@ -2,7 +2,10 @@ package accrual_system
 
 import (
 	"errors"
+	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
+	"net/http"
 	"time"
 )
 
@@ -32,6 +35,8 @@ type OrderInfo struct {
 }
 
 func (asc AccrualSystemClient) GetOrderInfo(number string) (OrderInfo, error) {
+	logger := loggerInternal.GetContextLogger(nil)
+
 	var orderInfo OrderInfo
 
 	resp, err := asc.client.R().SetResult(&orderInfo).SetPathParams(map[string]string{
@@ -43,9 +48,8 @@ func (asc AccrualSystemClient) GetOrderInfo(number string) (OrderInfo, error) {
 
 	statusCode := resp.StatusCode()
 
-	// TODO: Добавить лог с текстом ошибки
-
-	if statusCode != 200 {
+	if statusCode != http.StatusOK {
+		logger.Warn("Order info not received", zap.String("status", resp.Status()))
 		switch statusCode {
 		case 204:
 			return OrderInfo{}, ErrOrderNotRegistered
