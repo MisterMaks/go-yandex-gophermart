@@ -96,12 +96,12 @@ func NewAppUsecase(
 	return appUsecase, nil
 }
 
-func (au AppUsecase) Close() {
+func (au *AppUsecase) Close() {
 	close(au.processOrdersChan)
 	au.processOrdersCtxCancel()
 }
 
-func (au AppUsecase) updateExistedNewOrders() {
+func (au *AppUsecase) updateExistedNewOrders() {
 	logger := loggerInternal.Log
 Loop:
 	for {
@@ -128,7 +128,7 @@ Loop:
 	}
 }
 
-func (au AppUsecase) processOrder() {
+func (au *AppUsecase) processOrder() {
 	logger := loggerInternal.Log
 
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
@@ -190,7 +190,7 @@ func (au AppUsecase) processOrder() {
 
 }
 
-func (au AppUsecase) hashPassword(password string) string {
+func (au *AppUsecase) hashPassword(password string) string {
 	// подписываем алгоритмом HMAC, используя SHA-256
 	h := hmac.New(sha256.New, []byte(au.passwordKey))
 	h.Write([]byte(password))
@@ -201,13 +201,13 @@ func (au AppUsecase) hashPassword(password string) string {
 	return passwordHashStr
 }
 
-func (au AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
+func (au *AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.CreateUser(ctx, login, passwordHash)
 	return user, err
 }
 
-func (au AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
+func (au *AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.AuthUser(ctx, login, passwordHash)
 	return user, err
@@ -218,7 +218,7 @@ type Claims struct {
 	UserID uint
 }
 
-func (au AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, error) {
+func (au *AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, error) {
 	// создаём новый токен с алгоритмом подписи HS256 и утверждениями — Claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -239,7 +239,7 @@ func (au AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, e
 	return tokenString, nil
 }
 
-func (au AppUsecase) GetUserID(tokenString string) (uint, error) {
+func (au *AppUsecase) GetUserID(tokenString string) (uint, error) {
 	// создаём экземпляр структуры с утверждениями
 	claims := &Claims{}
 	// парсим из строки токена tokenString в структуру claims
@@ -286,7 +286,7 @@ func luhnAlgorithm(number string) (bool, error) {
 	return true, nil
 }
 
-func (au AppUsecase) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) {
+func (au *AppUsecase) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) {
 	ok, err := luhnAlgorithm(number)
 	if !ok || err != nil {
 		return nil, app.ErrInvalidOrderNumber
@@ -308,18 +308,18 @@ func (au AppUsecase) CreateOrder(ctx context.Context, userID uint, number string
 	return order, nil
 }
 
-func (au AppUsecase) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
+func (au *AppUsecase) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
 	return au.AppRepo.GetOrders(ctx, userID)
 }
 
-func (au AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
+func (au *AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
 	return au.AppRepo.GetBalance(ctx, userID)
 }
 
-func (au AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
+func (au *AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
 	return au.AppRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
 }
 
-func (au AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
+func (au *AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
 	return au.AppRepo.GetWithdrawals(ctx, userID)
 }

@@ -40,7 +40,7 @@ func NewAppRepo(db *sql.DB) (*AppRepo, error) {
 	return &AppRepo{db: db}, nil
 }
 
-func (ar AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error) {
+func (ar *AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error) {
 	// запускаем транзакцию
 	tx, err := ar.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -80,7 +80,7 @@ func (ar AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (*
 	}, nil
 }
 
-func (ar AppRepo) AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error) {
+func (ar *AppRepo) AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error) {
 	row := ar.db.QueryRowContext(
 		ctx,
 		GetUserQuery,
@@ -101,7 +101,7 @@ func (ar AppRepo) AuthUser(ctx context.Context, login, passwordHash string) (*ap
 	}, nil
 }
 
-func (ar AppRepo) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) {
+func (ar *AppRepo) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) {
 	row := ar.db.QueryRowContext(
 		ctx,
 		CreateOrderQuery,
@@ -127,7 +127,7 @@ func (ar AppRepo) CreateOrder(ctx context.Context, userID uint, number string) (
 	}, nil
 }
 
-func (ar AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
+func (ar *AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
 	_, err := ar.db.ExecContext(
 		ctx,
 		UpdateOrderQuery,
@@ -139,7 +139,7 @@ func (ar AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
 	return err
 }
 
-func (ar AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
+func (ar *AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
 	rows, err := ar.db.QueryContext(
 		ctx,
 		GetOrdersQuery,
@@ -183,7 +183,7 @@ func (ar AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, err
 	return orders, nil
 }
 
-func (ar AppRepo) GetNewOrders(ctx context.Context) ([]*app.Order, error) {
+func (ar *AppRepo) GetNewOrders(ctx context.Context) ([]*app.Order, error) {
 	rows, err := ar.db.QueryContext(
 		ctx,
 		GetNewOrdersQuery,
@@ -228,7 +228,7 @@ func (ar AppRepo) GetNewOrders(ctx context.Context) ([]*app.Order, error) {
 	return orders, nil
 }
 
-func (ar AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
+func (ar *AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
 	row := ar.db.QueryRowContext(
 		ctx,
 		GetBalanceQuery,
@@ -251,7 +251,7 @@ func (ar AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, er
 	}, nil
 }
 
-func (ar AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
+func (ar *AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
 	// запускаем транзакцию
 	tx, err := ar.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -295,7 +295,7 @@ func (ar AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber s
 	}, nil
 }
 
-func (ar AppRepo) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
+func (ar *AppRepo) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
 	rows, err := ar.db.QueryContext(
 		ctx,
 		GetWithdrawalsQuery,
