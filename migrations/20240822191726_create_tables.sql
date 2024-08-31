@@ -3,7 +3,7 @@
 CREATE TABLE "user" (
      id serial PRIMARY KEY,
      login varchar(64) UNIQUE NOT NULL CHECK (login SIMILAR TO '[a-zA-Z0-9\.\-\_]+'),
-     password_hash varchar(256) NOT NULL CHECK (password_hash SIMILAR TO '[a-zA-Z0-9\.\-\_]+')
+     password_hash varchar(256) NOT NULL CHECK (password_hash SIMILAR TO '[\w\.-\s]+')
 );
 
 CREATE TABLE balance (
