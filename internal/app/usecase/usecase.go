@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-type appRepoInterface interface {
+type AppRepoInterface interface {
 	CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error)
 	AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error)
 	CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
@@ -27,14 +27,14 @@ type appRepoInterface interface {
 	GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
 }
 
-type accrualSystemClientInterface interface {
+type AccrualSystemClientInterface interface {
 	GetOrderInfo(ctx context.Context, number string) (accrual_system.OrderInfo, error)
 }
 
 type AppUsecase struct {
-	appRepo appRepoInterface
+	AppRepo AppRepoInterface
 
-	accrualSystemClient accrualSystemClientInterface
+	AccrualSystemClient AccrualSystemClientInterface
 
 	passwordKey string
 
@@ -49,8 +49,8 @@ type AppUsecase struct {
 }
 
 func NewAppUsecase(
-	appRepo appRepoInterface,
-	accrualSystemClient accrualSystemClientInterface,
+	appRepo AppRepoInterface,
+	accrualSystemClient AccrualSystemClientInterface,
 	passwordKey string,
 	tokenKey string,
 	tokenExp time.Duration,
@@ -61,9 +61,9 @@ func NewAppUsecase(
 	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
 
 	appUsecase := &AppUsecase{
-		appRepo: appRepo,
+		AppRepo: appRepo,
 
-		accrualSystemClient: accrualSystemClient,
+		AccrualSystemClient: accrualSystemClient,
 
 		passwordKey: passwordKey,
 
@@ -95,7 +95,7 @@ Loop:
 			)
 			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
 
-			orders, err := au.appRepo.GetNewOrders(ctx)
+			orders, err := au.AppRepo.GetNewOrders(ctx)
 			if err != nil {
 				continue Loop
 			}
@@ -131,7 +131,7 @@ func (au AppUsecase) processOrder() {
 
 		Loop:
 			for _, order := range orders {
-				orderInfo, err := au.accrualSystemClient.GetOrderInfo(ctx, order.Number)
+				orderInfo, err := au.AccrualSystemClient.GetOrderInfo(ctx, order.Number)
 
 				if err != nil {
 					logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
@@ -162,7 +162,7 @@ func (au AppUsecase) processOrder() {
 					continue Loop
 				}
 
-				err = au.appRepo.UpdateOrder(ctx, order)
+				err = au.AppRepo.UpdateOrder(ctx, order)
 				if err != nil {
 					continue
 				}
@@ -185,13 +185,13 @@ func (au AppUsecase) hashPassword(password string) string {
 
 func (au AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
-	user, err := au.appRepo.CreateUser(ctx, login, passwordHash)
+	user, err := au.AppRepo.CreateUser(ctx, login, passwordHash)
 	return user, err
 }
 
 func (au AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
-	user, err := au.appRepo.AuthUser(ctx, login, passwordHash)
+	user, err := au.AppRepo.AuthUser(ctx, login, passwordHash)
 	return user, err
 }
 
@@ -259,7 +259,7 @@ func (au AppUsecase) CreateOrder(ctx context.Context, userID uint, number string
 		return nil, app.ErrInvalidOrderNumber
 	}
 
-	order, err := au.appRepo.CreateOrder(ctx, userID, number)
+	order, err := au.AppRepo.CreateOrder(ctx, userID, number)
 	if err != nil {
 		return nil, err
 	}
@@ -276,17 +276,17 @@ func (au AppUsecase) CreateOrder(ctx context.Context, userID uint, number string
 }
 
 func (au AppUsecase) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
-	return au.appRepo.GetOrders(ctx, userID)
+	return au.AppRepo.GetOrders(ctx, userID)
 }
 
 func (au AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
-	return au.appRepo.GetBalance(ctx, userID)
+	return au.AppRepo.GetBalance(ctx, userID)
 }
 
 func (au AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
-	return au.appRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
+	return au.AppRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
 }
 
 func (au AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
-	return au.appRepo.GetWithdrawals(ctx, userID)
+	return au.AppRepo.GetWithdrawals(ctx, userID)
 }
