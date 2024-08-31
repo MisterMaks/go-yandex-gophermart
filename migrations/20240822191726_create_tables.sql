@@ -17,7 +17,7 @@ CREATE TABLE "order" (
     id serial PRIMARY KEY,
     user_id integer NOT NULL REFERENCES "user"(id),
     number text UNIQUE NOT NULL CHECK (number SIMILAR TO '[0-9]+'),
-    status varchar(16) NOT NULL CHECK (status IN ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED')),
+    status varchar(16) NOT NULL DEFAULT 'NEW' CHECK (status IN ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED')),
     accrual numeric CHECK (accrual >= 0),
     uploaded_at timestamp NOT NULL DEFAULT now()
 );
