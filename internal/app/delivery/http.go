@@ -36,14 +36,14 @@ func getContextUserID(ctx context.Context) (uint, error) {
 }
 
 type AppUsecaseInterface interface {
-	Register(login, password string) (*app.User, error)
-	Login(login, password string) (*app.User, error)
-	BuildJWTString(userID uint) (string, error)
-	CreateOrder(userID uint, number string) (*app.Order, error)
-	GetOrders(userID uint) ([]*app.Order, error)
-	GetBalance(userID uint) (*app.Balance, error)
-	CreateWithdraw(userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
-	GetWithdrawals(userID uint) ([]*app.Withdrawal, error)
+	Register(ctx context.Context, login, password string) (*app.User, error)
+	Login(ctx context.Context, login, password string) (*app.User, error)
+	BuildJWTString(ctx context.Context, userID uint) (string, error)
+	CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
+	GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
+	GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
+	CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+	GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
 }
 
 type AppHandler struct {
@@ -87,7 +87,7 @@ func (ah *AppHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ah.AppUsecase.Register(req.Login, req.Password)
+	user, err := ah.AppUsecase.Register(r.Context(), req.Login, req.Password)
 	if err != nil {
 		logger.Warn("Invalid login/password",
 			zap.Error(err),
@@ -104,7 +104,7 @@ func (ah *AppHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := ah.AppUsecase.BuildJWTString(user.ID)
+	accessToken, err := ah.AppUsecase.BuildJWTString(r.Context(), user.ID)
 	if err != nil {
 		logger.Error("Failed to build JWT",
 			zap.Error(err),
@@ -150,7 +150,7 @@ func (ah *AppHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ah.AppUsecase.Login(req.Login, req.Password)
+	user, err := ah.AppUsecase.Login(r.Context(), req.Login, req.Password)
 	if err != nil {
 		logger.Warn("Invalid login/password",
 			zap.Error(err),
@@ -165,7 +165,7 @@ func (ah *AppHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := ah.AppUsecase.BuildJWTString(user.ID)
+	accessToken, err := ah.AppUsecase.BuildJWTString(r.Context(), user.ID)
 	if err != nil {
 		logger.Error("Failed to build JWT",
 			zap.Error(err),
@@ -215,7 +215,7 @@ func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = ah.AppUsecase.CreateOrder(userID, bodyStr)
+	_, err = ah.AppUsecase.CreateOrder(r.Context(), userID, bodyStr)
 	if err != nil {
 		logger.Warn("Failed to create new order",
 			zap.Error(err),
@@ -252,7 +252,7 @@ func (ah *AppHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := ah.AppUsecase.GetOrders(userID)
+	orders, err := ah.AppUsecase.GetOrders(r.Context(), userID)
 	if err != nil {
 		logger.Warn("Failed to get orders",
 			zap.Error(err),
@@ -294,7 +294,7 @@ func (ah *AppHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, err := ah.AppUsecase.GetBalance(userID)
+	balance, err := ah.AppUsecase.GetBalance(r.Context(), userID)
 	if err != nil {
 		logger.Warn("Failed to get balance",
 			zap.Error(err),
@@ -358,7 +358,7 @@ func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = ah.AppUsecase.CreateWithdraw(userID, req.Order, req.Sum)
+	_, err = ah.AppUsecase.CreateWithdraw(r.Context(), userID, req.Order, req.Sum)
 	if err != nil {
 		logger.Warn("Failed to create withdraw",
 			zap.Error(err),
@@ -393,7 +393,7 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	withdrawals, err := ah.AppUsecase.GetWithdrawals(userID)
+	withdrawals, err := ah.AppUsecase.GetWithdrawals(r.Context(), userID)
 	if err != nil {
 		logger.Warn("Failed to get withdrawals",
 			zap.Error(err),
