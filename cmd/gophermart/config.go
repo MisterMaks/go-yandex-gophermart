@@ -18,6 +18,7 @@ type Config struct {
 	ProcessOrderChanSize              uint          `env:"PROCESS_ORDER_CHAN_SIZE"`
 	ProcessOrderWaitingTime           time.Duration `env:"PROCESS_ORDER_WAITING_TIME"`
 	UpdateExistedNewOrdersWaitingTime time.Duration `env:"UPDATE_EXISTED_ORDERS_WAITING_TIME"`
+	AccrualSystemRequestTimeout       time.Duration `env:"ACCRUAL_SYSTEM_REQUEST_TIMEOUT"`
 }
 
 func NewConfig() (*Config, error) {
@@ -34,6 +35,8 @@ func NewConfig() (*Config, error) {
 	flag.UintVar(&config.ProcessOrderChanSize, "pocs", 256, "Process order chan size")
 	flag.DurationVar(&config.ProcessOrderWaitingTime, "powt", 2*time.Minute, "Process order waiting time")
 	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", 2*time.Minute, "Update existed new orders waiting Time")
+
+	flag.DurationVar(&config.AccrualSystemRequestTimeout, "asrt", 2*time.Second, "Accrual system request timeout")
 
 	flag.Parse()
 

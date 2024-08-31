@@ -9,13 +9,11 @@ import (
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
-	"time"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -130,7 +128,7 @@ func main() {
 		)
 	}
 
-	accrualSystemClient := accrual_system.NewAccrualSystemClient(config.AccrualSystemAddress, 2*time.Second)
+	accrualSystemClient := accrual_system.NewAccrualSystemClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
 	appUsecase, err := usecase.NewAppUsecase(
 		appRepo,
 		accrualSystemClient,
