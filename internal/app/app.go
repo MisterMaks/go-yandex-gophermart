@@ -71,8 +71,7 @@ var (
 
 	ErrOrderUploaded              = errors.New("order number has already been uploaded by this user")
 	ErrOrderUploadedByAnotherUser = errors.New("order number has already been uploaded by this user")
-	ErrInvalidOrderNumberFormat   = errors.New("invalid order number format")
 
-	ErrInsufficientFunds = errors.New("there are insufficient funds in the account")
-	ErrInvalidOrder      = errors.New("invalid order number")
+	ErrInsufficientFunds  = errors.New("there are insufficient funds in the account")
+	ErrInvalidOrderNumber = errors.New("invalid order number")
 )

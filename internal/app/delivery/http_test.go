@@ -755,7 +755,7 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 	// при вызове с аргументом "Key" вернёт "Value"
 	m.EXPECT().CreateWithdraw(userID, orderNumber, sum).Return(withdrawal, nil)
 	m.EXPECT().CreateWithdraw(userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds)
-	m.EXPECT().CreateWithdraw(userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrder)
+	m.EXPECT().CreateWithdraw(userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrderNumber)
 
 	appHandler := NewAppHandler(m)
 

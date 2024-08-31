@@ -225,7 +225,7 @@ func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		case app.ErrOrderUploadedByAnotherUser:
 			w.WriteHeader(http.StatusConflict)
-		case app.ErrInvalidOrderNumberFormat:
+		case app.ErrInvalidOrderNumber:
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -366,7 +366,7 @@ func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 		switch err {
 		case app.ErrInsufficientFunds:
 			w.WriteHeader(http.StatusPaymentRequired)
-		case app.ErrInvalidOrder:
+		case app.ErrInvalidOrderNumber:
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
