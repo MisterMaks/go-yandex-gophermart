@@ -1,12 +1,12 @@
 package main
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"go.uber.org/zap"
 	"log"
-	"math/rand"
 )
 
 const (
@@ -14,24 +14,23 @@ const (
 	LogLevel = "INFO"
 
 	ConfigKey string = "config"
-
-	Symbols      string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_"
-	CountSymbols        = len(Symbols)
 )
 
 var ErrZeroSize = errors.New("key size <= 0")
 
-func generateRandomKey(size int) (string, error) {
+func generateRandomKey(size int) ([]byte, error) {
 	if size <= 0 {
-		return "", ErrZeroSize
+		return nil, ErrZeroSize
 	}
 
+	// генерируем случайную последовательность байт
 	b := make([]byte, size)
-	for i := range b {
-		b[i] = Symbols[rand.Intn(CountSymbols)]
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
 	}
 
-	return string(b), nil
+	return b, nil
 }
 
 func main() {
@@ -55,5 +54,5 @@ func main() {
 		logger.Log.Fatal("Failed to generate key", zap.Error(err))
 	}
 
-	fmt.Println("Key:", string(key))
+	fmt.Printf("Key: %x\n", key)
 }
