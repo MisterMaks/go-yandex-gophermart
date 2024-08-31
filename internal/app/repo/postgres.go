@@ -19,17 +19,17 @@ const (
 	SumKey          = "sum"
 	WithdrawKey     = "withdraw"
 
-	CreateUserQuery     = `INSERT INTO "user" (login, password_hash) VALUES (@login, @password_hash) RETURNING id;`
-	CreateBalanceQuery  = `INSERT INTO balance (user_id) VALUES (@user_id);`
-	GetUserQuery        = `SELECT id FROM "user" WHERE login = @login AND password_hash = @password_hash;`
-	CreateOrderQuery    = `INSERT INTO "order" (user_id, number) VALUES (@user_id, @number) RETURNING id, status, uploaded_at;`
-	UpdateOrderQuery    = `UPDATE "order" SET status = @status, accrual = @accrual WHERE id = @id;`
-	GetOrdersQuery      = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = @user_id;`
+	CreateUserQuery     = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
+	CreateBalanceQuery  = `INSERT INTO balance (user_id) VALUES ($1);`
+	GetUserQuery        = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
+	CreateOrderQuery    = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) RETURNING id, status, uploaded_at;`
+	UpdateOrderQuery    = `UPDATE "order" SET status = $1, accrual = $2 WHERE id = $3;`
+	GetOrdersQuery      = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = $1;`
 	GetNewOrdersQuery   = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`
-	GetBalanceQuery     = `SELECT id, current, withdrawn FROM balance WHERE user_id = @user_id;`
-	UpdateBalanceQuery  = `UPDATE balance SET current = current - @withdraw, withdrawn = withdrawn + @withdraw WHERE user_id = @user_id;`
-	CreateWithdrawQuery = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES (@user_id, @order_number, @sum) RETURNING id, processed_at;`
-	GetWithdrawalsQuery = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = @user_id;`
+	GetBalanceQuery     = `SELECT id, current, withdrawn FROM balance WHERE user_id = $1;`
+	UpdateBalanceQuery  = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
+	CreateWithdrawQuery = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) RETURNING id, processed_at;`
+	GetWithdrawalsQuery = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1;`
 )
 
 type AppRepo struct {
@@ -53,8 +53,8 @@ func (ar *AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (
 	row := tx.QueryRowContext(
 		ctx,
 		CreateUserQuery,
-		sql.Named(LoginKey, login),
-		sql.Named(PasswordHashKey, passwordHash),
+		login,
+		passwordHash,
 	)
 
 	var id uint
@@ -63,7 +63,7 @@ func (ar *AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (
 		return nil, err
 	}
 
-	_, err = tx.ExecContext(ctx, CreateBalanceQuery, sql.Named(UserIDKey, id))
+	_, err = tx.ExecContext(ctx, CreateBalanceQuery, id)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +84,8 @@ func (ar *AppRepo) AuthUser(ctx context.Context, login, passwordHash string) (*a
 	row := ar.db.QueryRowContext(
 		ctx,
 		GetUserQuery,
-		sql.Named(LoginKey, login),
-		sql.Named(PasswordHashKey, passwordHash),
+		login,
+		passwordHash,
 	)
 
 	var id uint
@@ -105,8 +105,8 @@ func (ar *AppRepo) CreateOrder(ctx context.Context, userID uint, number string) 
 	row := ar.db.QueryRowContext(
 		ctx,
 		CreateOrderQuery,
-		sql.Named(UserIDKey, userID),
-		sql.Named(NumberKey, number),
+		userID,
+		number,
 	)
 
 	var id uint
@@ -131,9 +131,9 @@ func (ar *AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
 	_, err := ar.db.ExecContext(
 		ctx,
 		UpdateOrderQuery,
-		sql.Named(StatusKey, order.Status),
-		sql.Named(AccrualKey, order.Accrual),
-		sql.Named(IDKey, order.ID),
+		order.Status,
+		order.Accrual,
+		order.ID,
 	)
 
 	return err
@@ -143,7 +143,7 @@ func (ar *AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, er
 	rows, err := ar.db.QueryContext(
 		ctx,
 		GetOrdersQuery,
-		sql.Named(UserIDKey, userID),
+		userID,
 	)
 	if err != nil {
 		return nil, err
@@ -232,7 +232,7 @@ func (ar *AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, e
 	row := ar.db.QueryRowContext(
 		ctx,
 		GetBalanceQuery,
-		sql.Named(UserIDKey, userID),
+		userID,
 	)
 
 	var id uint
@@ -261,7 +261,7 @@ func (ar *AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber 
 	// в случае неуспешного коммита все изменения транзакции будут отменены
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(ctx, UpdateBalanceQuery, sql.Named(UserIDKey, userID), sql.Named(WithdrawKey, sum))
+	_, err = tx.ExecContext(ctx, UpdateBalanceQuery, sum, sum, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -269,9 +269,9 @@ func (ar *AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber 
 	row := tx.QueryRowContext(
 		ctx,
 		CreateWithdrawQuery,
-		sql.Named(UserIDKey, userID),
-		sql.Named(OrderNumberKey, orderNumber),
-		sql.Named(SumKey, sum),
+		userID,
+		orderNumber,
+		sum,
 	)
 
 	var id uint
@@ -299,7 +299,7 @@ func (ar *AppRepo) GetWithdrawals(ctx context.Context, userID uint) ([]*app.With
 	rows, err := ar.db.QueryContext(
 		ctx,
 		GetWithdrawalsQuery,
-		sql.Named(UserIDKey, userID),
+		userID,
 	)
 	if err != nil {
 		return nil, err
