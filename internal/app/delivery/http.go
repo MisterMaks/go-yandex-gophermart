@@ -39,6 +39,7 @@ type AppUsecaseInterface interface {
 	Register(ctx context.Context, login, password string) (*app.User, error)
 	Login(ctx context.Context, login, password string) (*app.User, error)
 	BuildJWTString(ctx context.Context, userID uint) (string, error)
+	GetUserID(tokenString string) (uint, error)
 	CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
 	GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
 	GetBalance(ctx context.Context, userID uint) (*app.Balance, error)

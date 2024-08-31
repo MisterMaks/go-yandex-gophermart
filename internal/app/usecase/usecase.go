@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
@@ -13,6 +14,11 @@ import (
 	"go.uber.org/zap"
 	"strconv"
 	"time"
+)
+
+var (
+	ErrEmptyPasswordKey = errors.New("empty password key")
+	ErrEmptyTokenKey    = errors.New("empty token key")
 )
 
 type AppRepoInterface interface {
@@ -56,8 +62,15 @@ func NewAppUsecase(
 	tokenExp time.Duration,
 	processOrderChanSize uint,
 	processOrderWaitingTime time.Duration,
-	updateExistedOrdersWaitingTime time.Duration,
-) *AppUsecase {
+	updateExistedNewOrdersWaitingTime time.Duration,
+) (*AppUsecase, error) {
+	if passwordKey == "" {
+		return nil, ErrEmptyPasswordKey
+	}
+	if tokenKey == "" {
+		return nil, ErrEmptyTokenKey
+	}
+
 	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
 
 	appUsecase := &AppUsecase{
@@ -72,7 +85,7 @@ func NewAppUsecase(
 
 		processOrdersChan:            make(chan *app.Order, processOrderChanSize),
 		processOrdersTicker:          time.NewTicker(processOrderWaitingTime),
-		updateExistedNewOrdersTicker: time.NewTicker(updateExistedOrdersWaitingTime),
+		updateExistedNewOrdersTicker: time.NewTicker(updateExistedNewOrdersWaitingTime),
 		processOrdersCtx:             processOrderCtx,
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
@@ -80,7 +93,12 @@ func NewAppUsecase(
 	go appUsecase.processOrder()
 	go appUsecase.updateExistedNewOrders()
 
-	return appUsecase
+	return appUsecase, nil
+}
+
+func (au AppUsecase) Close() {
+	close(au.processOrdersChan)
+	au.processOrdersCtxCancel()
 }
 
 func (au AppUsecase) updateExistedNewOrders() {
@@ -219,6 +237,21 @@ func (au AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, e
 
 	// возвращаем строку токена
 	return tokenString, nil
+}
+
+func (au AppUsecase) GetUserID(tokenString string) (uint, error) {
+	// создаём экземпляр структуры с утверждениями
+	claims := &Claims{}
+	// парсим из строки токена tokenString в структуру claims
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+		return []byte(au.tokenKey), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// возвращаем ID пользователя в читаемом виде
+	return claims.UserID, nil
 }
 
 func luhnAlgorithm(number string) (bool, error) {

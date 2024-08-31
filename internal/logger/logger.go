@@ -68,7 +68,7 @@ func (lrw *LoggerResponseWriter) Write(bytes []byte) (int, error) {
 	return bodySize, err
 }
 
-func RequestLogger(h http.Handler) http.Handler {
+func RequestLoggerMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := generateRequestID()
 		lrw := &LoggerResponseWriter{ResponseWriter: w}

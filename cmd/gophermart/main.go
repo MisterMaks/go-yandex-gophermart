@@ -3,10 +3,17 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/repo"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+	"github.com/go-chi/chi/v5"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 	"log"
+	"net/http"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -16,6 +23,8 @@ const (
 	LogLevel   = "INFO"
 
 	ConfigKey string = "config"
+
+	RunAddressKey string = "run_address"
 )
 
 func migrate(dsn string) error {
@@ -48,6 +57,41 @@ func connectPostgres(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
+type Middlewares struct {
+	RequestLogger  func(http.Handler) http.Handler
+	AuthMiddleware func(http.Handler) http.Handler
+}
+
+type AppHandlerInterface interface {
+	Register(w http.ResponseWriter, r *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
+	CreateOrder(w http.ResponseWriter, r *http.Request)
+	GetOrders(w http.ResponseWriter, r *http.Request)
+	GetBalance(w http.ResponseWriter, r *http.Request)
+	CreateWithdraw(w http.ResponseWriter, r *http.Request)
+	GetWithdrawals(w http.ResponseWriter, r *http.Request)
+}
+
+func router(
+	appHandler AppHandlerInterface,
+	middlewares *Middlewares,
+) chi.Router {
+	r := chi.NewRouter()
+	r.Use(middlewares.RequestLogger)
+	r.Post(`/api/user/register`, appHandler.Register)
+	r.Post(`/api/user/login`, appHandler.Login)
+	r.Route(`/api/user`, func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Post(`/orders`, appHandler.CreateOrder)
+		r.Get(`/orders`, appHandler.GetOrders)
+		r.Get(`/balance`, appHandler.GetBalance)
+		r.Post(`/balance/withdraw`, appHandler.CreateWithdraw)
+		r.Get(`/withdrawals`, appHandler.GetWithdrawals)
+	})
+
+	return r
+}
+
 func main() {
 	config, err := NewConfig()
 	if err != nil {
@@ -75,6 +119,50 @@ func main() {
 	err = migrate(config.DatabaseURI)
 	if err != nil {
 		logger.Log.Fatal("Failed to apply migrations",
+			zap.Error(err),
+		)
+	}
+
+	appRepo, err := repo.NewAppRepo(db)
+	if err != nil {
+		logger.Log.Fatal("Failed to create AppRepo",
+			zap.Error(err),
+		)
+	}
+
+	accrualSystemClient := accrual_system.NewAccrualSystemClient(config.AccrualSystemAddress, 2*time.Second)
+	appUsecase, err := usecase.NewAppUsecase(
+		appRepo,
+		accrualSystemClient,
+		config.PasswordKey,
+		config.TokenKey,
+		config.TokenExpiration,
+		config.ProcessOrderChanSize,
+		config.ProcessOrderWaitingTime,
+		config.UpdateExistedNewOrdersWaitingTime,
+	)
+	if err != nil {
+		logger.Log.Fatal("Failed to create AppUsecase",
+			zap.Error(err),
+		)
+	}
+	defer appUsecase.Close()
+
+	appHandler := delivery.NewAppHandler(appUsecase)
+
+	middlewares := &Middlewares{
+		RequestLogger:  logger.RequestLoggerMiddleware,
+		AuthMiddleware: appHandler.AuthMiddleware,
+	}
+
+	r := router(appHandler, middlewares)
+
+	logger.Log.Info("Server running",
+		zap.String(RunAddressKey, config.RunAddress),
+	)
+	err = http.ListenAndServe(config.RunAddress, r)
+	if err != nil {
+		logger.Log.Fatal("Failed to start server",
 			zap.Error(err),
 		)
 	}
