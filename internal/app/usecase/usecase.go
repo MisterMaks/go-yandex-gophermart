@@ -7,25 +7,28 @@ import (
 	"fmt"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
+	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
 
 type appRepoInterface interface {
-	CreateUser(login, passwordHash string) (*app.User, error)
-	AuthUser(login, passwordHash string) (*app.User, error)
-	CreateOrder(userID uint, number string) (*app.Order, error)
-	UpdateOrder(order *app.Order) error
-	GetOrders(userID uint) ([]*app.Order, error)
-	GetNewOrders() ([]*app.Order, error)
-	GetBalance(userID uint) (*app.Balance, error)
-	CreateWithdraw(userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
-	GetWithdrawals(userID uint) ([]*app.Withdrawal, error)
+	CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error)
+	AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error)
+	CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
+	UpdateOrder(ctx context.Context, order *app.Order) error
+	GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
+	GetNewOrders(ctx context.Context) ([]*app.Order, error)
+	GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
+	CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+	GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
 }
 
 type accrualSystemClientInterface interface {
-	GetOrderInfo(number string) (accrual_system.OrderInfo, error)
+	GetOrderInfo(ctx context.Context, number string) (accrual_system.OrderInfo, error)
 }
 
 type AppUsecase struct {
@@ -75,16 +78,24 @@ func NewAppUsecase(
 	}
 
 	go appUsecase.processOrder()
+	go appUsecase.updateExistedNewOrders()
 
 	return appUsecase
 }
 
 func (au AppUsecase) updateExistedNewOrders() {
+	logger := loggerInternal.Log
 Loop:
 	for {
 		select {
 		case <-au.updateExistedNewOrdersTicker.C:
-			orders, err := au.appRepo.GetNewOrders()
+			iterationID := uuid.New().String()
+			ctxLogger := logger.With(
+				zap.String("update_existed_new_orders_iteration_id", iterationID),
+			)
+			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
+
+			orders, err := au.appRepo.GetNewOrders(ctx)
 			if err != nil {
 				continue Loop
 			}
@@ -100,7 +111,8 @@ Loop:
 }
 
 func (au AppUsecase) processOrder() {
-	// TODO: Добавить логи с контекстом
+	logger := loggerInternal.Log
+
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
 	for {
 		select {
@@ -111,11 +123,18 @@ func (au AppUsecase) processOrder() {
 				continue
 			}
 
+			iterationID := uuid.New().String()
+			ctxLogger := logger.With(
+				zap.String("process_order_iteration_id", iterationID),
+			)
+			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
+
 		Loop:
 			for _, order := range orders {
-				orderInfo, err := au.accrualSystemClient.GetOrderInfo(order.Number)
+				orderInfo, err := au.accrualSystemClient.GetOrderInfo(ctx, order.Number)
 
 				if err != nil {
+					logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
 					switch err {
 					case accrual_system.ErrTooManyRequests:
 						break Loop
@@ -139,10 +158,11 @@ func (au AppUsecase) processOrder() {
 					order.Status = "PROCESSED"
 					order.Accrual = orderInfo.Accrual
 				default:
+					logger.Error("Unknown order status", zap.Any("order", order), zap.Any("order_info", orderInfo))
 					continue Loop
 				}
 
-				err = au.appRepo.UpdateOrder(order)
+				err = au.appRepo.UpdateOrder(ctx, order)
 				if err != nil {
 					continue
 				}
@@ -163,15 +183,15 @@ func (au AppUsecase) hashPassword(password string) string {
 	return passwordHashStr
 }
 
-func (au AppUsecase) Register(login, password string) (*app.User, error) {
+func (au AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
-	user, err := au.appRepo.CreateUser(login, passwordHash)
+	user, err := au.appRepo.CreateUser(ctx, login, passwordHash)
 	return user, err
 }
 
-func (au AppUsecase) Login(login, password string) (*app.User, error) {
+func (au AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
-	user, err := au.appRepo.AuthUser(login, passwordHash)
+	user, err := au.appRepo.AuthUser(ctx, login, passwordHash)
 	return user, err
 }
 
@@ -180,7 +200,7 @@ type Claims struct {
 	UserID uint
 }
 
-func (au AppUsecase) BuildJWTString(userID uint) (string, error) {
+func (au AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, error) {
 	// создаём новый токен с алгоритмом подписи HS256 и утверждениями — Claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -233,13 +253,13 @@ func luhnAlgorithm(number string) (bool, error) {
 	return true, nil
 }
 
-func (au AppUsecase) CreateOrder(userID uint, number string) (*app.Order, error) {
+func (au AppUsecase) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) {
 	ok, err := luhnAlgorithm(number)
 	if !ok || err != nil {
 		return nil, app.ErrInvalidOrderNumber
 	}
 
-	order, err := au.appRepo.CreateOrder(userID, number)
+	order, err := au.appRepo.CreateOrder(ctx, userID, number)
 	if err != nil {
 		return nil, err
 	}
@@ -255,18 +275,18 @@ func (au AppUsecase) CreateOrder(userID uint, number string) (*app.Order, error)
 	return order, nil
 }
 
-func (au AppUsecase) GetOrders(userID uint) ([]*app.Order, error) {
-	return au.appRepo.GetOrders(userID)
+func (au AppUsecase) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
+	return au.appRepo.GetOrders(ctx, userID)
 }
 
-func (au AppUsecase) GetBalance(userID uint) (*app.Balance, error) {
-	return au.appRepo.GetBalance(userID)
+func (au AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) {
+	return au.appRepo.GetBalance(ctx, userID)
 }
 
-func (au AppUsecase) CreateWithdraw(userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
-	return au.appRepo.CreateWithdraw(userID, orderNumber, sum)
+func (au AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
+	return au.appRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
 }
 
-func (au AppUsecase) GetWithdrawals(userID uint) ([]*app.Withdrawal, error) {
-	return au.appRepo.GetWithdrawals(userID)
+func (au AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
+	return au.appRepo.GetWithdrawals(ctx, userID)
 }

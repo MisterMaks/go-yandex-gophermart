@@ -1,6 +1,7 @@
 package accrual_system
 
 import (
+	"context"
 	"errors"
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/go-resty/resty/v2"
@@ -34,13 +35,13 @@ type OrderInfo struct {
 	Accrual *float64 `json:"accrual,omitempty"`
 }
 
-func (asc AccrualSystemClient) GetOrderInfo(number string) (OrderInfo, error) {
-	logger := loggerInternal.GetContextLogger(nil)
+func (asc AccrualSystemClient) GetOrderInfo(ctx context.Context, orderNumber string) (OrderInfo, error) {
+	logger := loggerInternal.GetContextLogger(ctx)
 
 	var orderInfo OrderInfo
 
 	resp, err := asc.client.R().SetResult(&orderInfo).SetPathParams(map[string]string{
-		"number": number,
+		"number": orderNumber,
 	}).Get("/api/orders/{number}")
 	if err != nil {
 		return OrderInfo{}, err
@@ -49,7 +50,7 @@ func (asc AccrualSystemClient) GetOrderInfo(number string) (OrderInfo, error) {
 	statusCode := resp.StatusCode()
 
 	if statusCode != http.StatusOK {
-		logger.Warn("Order info not received", zap.String("status", resp.Status()))
+		logger.Warn("Order info not received", zap.String("order_number", orderNumber), zap.String("status", resp.Status()))
 		switch statusCode {
 		case 204:
 			return OrderInfo{}, ErrOrderNotRegistered
