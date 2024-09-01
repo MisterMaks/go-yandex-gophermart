@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app/mock"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -121,7 +121,7 @@ func TestAppHandler_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -254,7 +254,7 @@ func TestAppHandler_Login(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -402,7 +402,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -530,7 +530,7 @@ func TestAppHandler_GetOrders(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -623,7 +623,7 @@ func TestAppHandler_GetBalance(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -749,7 +749,7 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
@@ -849,7 +849,7 @@ func TestAppHandler_GetWithdrawals(t *testing.T) {
 	defer ctrl.Finish()
 
 	// создаём объект-заглушку
-	m := mock.NewMockAppUsecaseInterface(ctrl)
+	m := mocks.NewMockAppUsecaseInterface(ctrl)
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
