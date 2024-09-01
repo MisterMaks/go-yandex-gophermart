@@ -11,6 +11,7 @@ import (
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -19,6 +20,7 @@ import (
 var (
 	ErrEmptyPasswordKey = errors.New("empty password key")
 	ErrEmptyTokenKey    = errors.New("empty token key")
+	ErrDuplicateLogin   = errors.New("ERROR: duplicate key value violates unique constraint \"user_login_key\" (SQLSTATE 23505)")
 )
 
 type AppRepoInterface interface {
@@ -204,6 +206,17 @@ func (au *AppUsecase) hashPassword(password string) string {
 func (au *AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.CreateUser(ctx, login, passwordHash)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch {
+		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"user_login_key\"":
+			return nil, app.ErrLoginTaken
+		case pgErr.Code == "23514" && pgErr.Message == "new row for relation \"user\" violates check constraint \"user_login_check\"":
+			return nil, app.ErrInvalidLoginPasswordFormat
+		default:
+			return nil, err
+		}
+	}
 	return user, err
 }
 
