@@ -17,7 +17,7 @@ const (
 	TextPlainKey   string = "text/plain"
 )
 
-func TestGzipCompression(t *testing.T) {
+func TestGzipMiddleware(t *testing.T) {
 	decodedRequestBodyStrCh := make(chan string, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 
