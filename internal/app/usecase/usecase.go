@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
@@ -20,7 +21,6 @@ import (
 var (
 	ErrEmptyPasswordKey = errors.New("empty password key")
 	ErrEmptyTokenKey    = errors.New("empty token key")
-	ErrDuplicateLogin   = errors.New("ERROR: duplicate key value violates unique constraint \"user_login_key\" (SQLSTATE 23505)")
 )
 
 type AppRepoInterface interface {
@@ -223,6 +223,9 @@ func (au *AppUsecase) Register(ctx context.Context, login, password string) (*ap
 func (au *AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.AuthUser(ctx, login, passwordHash)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, app.ErrInvalidLoginPassword
+	}
 	return user, err
 }
 
