@@ -8,17 +8,6 @@ import (
 )
 
 const (
-	IDKey           = "id"
-	LoginKey        = "login"
-	PasswordHashKey = "password_hash"
-	UserIDKey       = "user_id"
-	NumberKey       = "number"
-	StatusKey       = "status"
-	AccrualKey      = "accrual"
-	OrderNumberKey  = "order_number"
-	SumKey          = "sum"
-	WithdrawKey     = "withdraw"
-
 	CreateUserQuery     = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
 	CreateBalanceQuery  = `INSERT INTO balance (user_id) VALUES ($1);`
 	GetUserQuery        = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
