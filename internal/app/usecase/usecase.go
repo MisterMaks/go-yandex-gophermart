@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -203,7 +204,27 @@ func (au *AppUsecase) hashPassword(password string) string {
 	return passwordHashStr
 }
 
+func (au *AppUsecase) checkLogin(login string) (bool, error) {
+	okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, login)
+	return !okInvalidSymbols, err
+}
+
+func (au *AppUsecase) checkPassword(password string) (bool, error) {
+	okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, password)
+	return !okInvalidSymbols, err
+}
+
 func (au *AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) {
+	ok, err := au.checkLogin(login)
+	if !ok || err != nil {
+		return nil, app.ErrInvalidLoginPasswordFormat
+	}
+
+	ok, err = au.checkPassword(password)
+	if !ok || err != nil {
+		return nil, app.ErrInvalidLoginPasswordFormat
+	}
+
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.CreateUser(ctx, login, passwordHash)
 	var pgErr *pgconn.PgError
