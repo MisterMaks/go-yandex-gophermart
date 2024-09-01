@@ -22,7 +22,7 @@ const (
 	CreateUserQuery     = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
 	CreateBalanceQuery  = `INSERT INTO balance (user_id) VALUES ($1);`
 	GetUserQuery        = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
-	CreateOrderQuery    = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) RETURNING id, status, uploaded_at;`
+	CreateOrderQuery    = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) ON CONFLICT (user_id, number) DO NOTHING RETURNING id, status, uploaded_at;`
 	UpdateOrderQuery    = `UPDATE "order" SET status = $1, accrual = $2 WHERE id = $3;`
 	GetOrdersQuery      = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = $1;`
 	GetNewOrdersQuery   = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`

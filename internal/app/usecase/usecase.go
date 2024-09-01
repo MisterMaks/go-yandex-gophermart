@@ -274,7 +274,7 @@ func luhnAlgorithm(number string) (bool, error) {
 	size := len(number)
 
 	coef := 0
-	if size%2 == 0 {
+	if size%2 != 0 {
 		coef = 1
 	}
 
@@ -310,6 +310,20 @@ func (au *AppUsecase) CreateOrder(ctx context.Context, userID uint, number strin
 
 	order, err := au.AppRepo.CreateOrder(ctx, userID, number)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, app.ErrOrderUploaded
+		}
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch {
+			case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":
+				return nil, app.ErrOrderUploadedByAnotherUser
+			default:
+				return nil, err
+			}
+		}
+
 		return nil, err
 	}
 

@@ -19,7 +19,8 @@ CREATE TABLE "order" (
     number text UNIQUE NOT NULL CHECK (number SIMILAR TO '[0-9]+'),
     status varchar(16) NOT NULL DEFAULT 'NEW' CHECK (status IN ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED')),
     accrual numeric CHECK (accrual >= 0),
-    uploaded_at timestamp NOT NULL DEFAULT now()
+    uploaded_at timestamp NOT NULL DEFAULT now(),
+    UNIQUE (user_id, number)
 );
 
 CREATE TABLE withdrawal (

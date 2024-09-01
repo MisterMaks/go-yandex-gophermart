@@ -70,7 +70,7 @@ var (
 	ErrInvalidLoginPasswordFormat = errors.New("invalid login/password format")
 
 	ErrOrderUploaded              = errors.New("order number has already been uploaded by this user")
-	ErrOrderUploadedByAnotherUser = errors.New("order number has already been uploaded by this user")
+	ErrOrderUploadedByAnotherUser = errors.New("order number has already been uploaded by another user")
 
 	ErrInsufficientFunds  = errors.New("there are insufficient funds in the account")
 	ErrInvalidOrderNumber = errors.New("invalid order number")
