@@ -369,6 +369,10 @@ func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusPaymentRequired)
 		case app.ErrInvalidOrderNumber:
 			w.WriteHeader(http.StatusUnprocessableEntity)
+		case app.ErrOrderUploaded:
+			w.WriteHeader(http.StatusOK)
+		case app.ErrOrderUploadedByAnotherUser:
+			w.WriteHeader(http.StatusConflict)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
 		}

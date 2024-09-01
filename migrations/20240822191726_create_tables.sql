@@ -28,7 +28,8 @@ CREATE TABLE withdrawal (
     user_id integer NOT NULL DEFAULT NULL REFERENCES "user"(id),
     order_number text UNIQUE NOT NULL CHECK (order_number SIMILAR TO '[0-9]+'),
     sum numeric NOT NULL CHECK (sum >= 0),
-    processed_at timestamp NOT NULL DEFAULT now()
+    processed_at timestamp NOT NULL DEFAULT now(),
+    UNIQUE (user_id, order_number)
 );
 -- +goose StatementEnd
 

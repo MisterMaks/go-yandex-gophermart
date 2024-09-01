@@ -28,7 +28,7 @@ const (
 	GetNewOrdersQuery   = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`
 	GetBalanceQuery     = `SELECT id, current, withdrawn FROM balance WHERE user_id = $1;`
 	UpdateBalanceQuery  = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
-	CreateWithdrawQuery = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) RETURNING id, processed_at;`
+	CreateWithdrawQuery = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) ON CONFLICT (user_id, order_number) DO NOTHING RETURNING id, processed_at;`
 	GetWithdrawalsQuery = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1;`
 )
 

@@ -347,7 +347,30 @@ func (au *AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance
 }
 
 func (au *AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
-	return au.AppRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
+	ok, err := luhnAlgorithm(orderNumber)
+	if !ok || err != nil {
+		return nil, app.ErrInvalidOrderNumber
+	}
+
+	withdrawal, err := au.AppRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, app.ErrOrderUploaded
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch {
+		case pgErr.Code == "23514" && pgErr.Message == "new row for relation \"balance\" violates check constraint \"balance_current_check\"":
+			return nil, app.ErrInsufficientFunds
+		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":
+			return nil, app.ErrOrderUploadedByAnotherUser
+		default:
+			return nil, err
+		}
+	}
+
+	return withdrawal, err
 }
 
 func (au *AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) {
