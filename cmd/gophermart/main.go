@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/gzip"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/repo"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
@@ -58,6 +59,7 @@ func connectPostgres(dsn string) (*sql.DB, error) {
 type Middlewares struct {
 	RequestLogger  func(http.Handler) http.Handler
 	AuthMiddleware func(http.Handler) http.Handler
+	GzipMiddleware func(http.Handler) http.Handler
 }
 
 type AppHandlerInterface interface {
@@ -75,7 +77,7 @@ func router(
 	middlewares *Middlewares,
 ) chi.Router {
 	r := chi.NewRouter()
-	r.Use(middlewares.RequestLogger)
+	r.Use(middlewares.RequestLogger, middlewares.GzipMiddleware)
 	r.Post(`/api/user/register`, appHandler.Register)
 	r.Post(`/api/user/login`, appHandler.Login)
 	r.Route(`/api/user`, func(r chi.Router) {
@@ -151,6 +153,7 @@ func main() {
 	middlewares := &Middlewares{
 		RequestLogger:  logger.RequestLoggerMiddleware,
 		AuthMiddleware: appHandler.AuthMiddleware,
+		GzipMiddleware: gzip.GzipMiddleware,
 	}
 
 	r := router(appHandler, middlewares)
