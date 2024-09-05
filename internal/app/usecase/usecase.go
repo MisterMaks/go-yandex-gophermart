@@ -242,6 +242,16 @@ func (au *AppUsecase) Register(ctx context.Context, login, password string) (*ap
 }
 
 func (au *AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) {
+	ok, err := au.checkLogin(login)
+	if !ok || err != nil {
+		return nil, app.ErrInvalidLoginPasswordFormat
+	}
+
+	ok, err = au.checkPassword(password)
+	if !ok || err != nil {
+		return nil, app.ErrInvalidLoginPasswordFormat
+	}
+
 	passwordHash := au.hashPassword(password)
 	user, err := au.AppRepo.AuthUser(ctx, login, passwordHash)
 	if errors.Is(err, sql.ErrNoRows) {
