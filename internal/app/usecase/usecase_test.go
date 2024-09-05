@@ -8,7 +8,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestAppUsecase_Register(t *testing.T) {
@@ -238,6 +240,62 @@ func TestAppUsecase_Login(t *testing.T) {
 			assert.ErrorIs(t, err, tt.want.err)
 			if err != nil {
 				assert.Equal(t, tt.want.user, u)
+			}
+		})
+	}
+}
+
+func TestAppUsecase_BuildJWTString(t *testing.T) {
+	userID := uint(1)
+
+	type args struct {
+		ctx    context.Context
+		userID uint
+	}
+
+	type want struct {
+		userID uint
+		err    error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid data",
+			args: args{
+				ctx:    nil,
+				userID: userID,
+			},
+			want: want{
+				userID: userID,
+			},
+		},
+	}
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      nil,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     10 * time.Second,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token, err := appUsecase.BuildJWTString(tt.args.ctx, tt.args.userID)
+			assert.ErrorIs(t, err, tt.want.err)
+			userIDFromToken, err := appUsecase.GetUserID(token)
+			require.NoError(t, err)
+			if err != nil {
+				assert.Equal(t, tt.want.userID, userIDFromToken)
 			}
 		})
 	}
