@@ -499,6 +499,9 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 			}
 		})
 	}
+
+	close(appUsecase.processOrdersChan)
+	appUsecase.processOrdersCtxCancel()
 }
 
 func TestAppUsecase_CreateWithdrawal(t *testing.T) {
