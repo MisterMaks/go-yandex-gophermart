@@ -389,5 +389,4 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 	time.Sleep(appUsecase.tokenExp + 1)
 	_, err = appUsecase.GetUserID(token)
 	assert.Error(t, err)
-
 }
