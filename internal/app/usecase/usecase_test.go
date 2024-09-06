@@ -254,8 +254,8 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 	}
 
 	type want struct {
-		userID uint
-		err    error
+		userID  uint
+		wantErr bool
 	}
 
 	tests := []struct {
@@ -270,7 +270,8 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 				userID: userID,
 			},
 			want: want{
-				userID: userID,
+				userID:  userID,
+				wantErr: false,
 			},
 		},
 	}
@@ -280,7 +281,7 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 		AccrualSystemClient:          nil,
 		passwordKey:                  "",
 		tokenKey:                     "",
-		tokenExp:                     10 * time.Second,
+		tokenExp:                     5 * time.Second,
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
@@ -290,13 +291,103 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			token, err := appUsecase.BuildJWTString(tt.args.ctx, tt.args.userID)
-			assert.ErrorIs(t, err, tt.want.err)
-			userIDFromToken, err := appUsecase.GetUserID(token)
-			require.NoError(t, err)
-			if err != nil {
+			token, errBuildJWTString := appUsecase.BuildJWTString(tt.args.ctx, tt.args.userID)
+			if tt.want.wantErr {
+				assert.Error(t, errBuildJWTString)
+			} else {
+				assert.NoError(t, errBuildJWTString)
+			}
+			userIDFromToken, errGetUserID := appUsecase.GetUserID(token)
+			require.NoError(t, errGetUserID)
+			if errBuildJWTString == nil && errGetUserID == nil {
 				assert.Equal(t, tt.want.userID, userIDFromToken)
 			}
 		})
 	}
+
+	// Check expired token
+	token, err := appUsecase.BuildJWTString(nil, userID)
+	assert.NoError(t, err)
+	time.Sleep(appUsecase.tokenExp + 1)
+	_, err = appUsecase.GetUserID(token)
+	assert.Error(t, err)
+}
+
+func TestAppUsecase_GetUserID(t *testing.T) {
+	appUsecase := &AppUsecase{
+		AppRepo:                      nil,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     5 * time.Second,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	userID := uint(1)
+	token, err := appUsecase.BuildJWTString(nil, userID)
+	require.NoError(t, err)
+	invalidToken := "invalid_token"
+
+	type args struct {
+		ctx   context.Context
+		token string
+	}
+
+	type want struct {
+		userID  uint
+		wantErr bool
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid data",
+			args: args{
+				ctx:   nil,
+				token: token,
+			},
+			want: want{
+				userID:  userID,
+				wantErr: false,
+			},
+		},
+		{
+			name: "invalid token",
+			args: args{
+				ctx:   nil,
+				token: invalidToken,
+			},
+			want: want{
+				userID:  userID,
+				wantErr: true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			userID, err := appUsecase.GetUserID(tt.args.token)
+			if tt.want.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			if err == nil {
+				assert.Equal(t, tt.want.userID, userID)
+			}
+		})
+	}
+
+	// Check expired token
+	time.Sleep(appUsecase.tokenExp + 1)
+	_, err = appUsecase.GetUserID(token)
+	assert.Error(t, err)
+
 }
