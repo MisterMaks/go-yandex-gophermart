@@ -68,7 +68,7 @@ type AppHandlerInterface interface {
 	CreateOrder(w http.ResponseWriter, r *http.Request)
 	GetOrders(w http.ResponseWriter, r *http.Request)
 	GetBalance(w http.ResponseWriter, r *http.Request)
-	CreateWithdraw(w http.ResponseWriter, r *http.Request)
+	CreateWithdrawal(w http.ResponseWriter, r *http.Request)
 	GetWithdrawals(w http.ResponseWriter, r *http.Request)
 }
 
@@ -85,7 +85,7 @@ func router(
 		r.Post(`/orders`, appHandler.CreateOrder)
 		r.Get(`/orders`, appHandler.GetOrders)
 		r.Get(`/balance`, appHandler.GetBalance)
-		r.Post(`/balance/withdraw`, appHandler.CreateWithdraw)
+		r.Post(`/balance/withdraw`, appHandler.CreateWithdrawal)
 		r.Get(`/withdrawals`, appHandler.GetWithdrawals)
 	})
 

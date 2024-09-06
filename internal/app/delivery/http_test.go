@@ -753,9 +753,9 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateWithdraw(gomock.Any(), userID, orderNumber, sum).Return(withdrawal, nil)
-	m.EXPECT().CreateWithdraw(gomock.Any(), userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds)
-	m.EXPECT().CreateWithdraw(gomock.Any(), userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrderNumber)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, orderNumber, sum).Return(withdrawal, nil)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrderNumber)
 
 	appHandler := NewAppHandler(m)
 
@@ -768,7 +768,7 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			appHandler.CreateWithdraw(w, req)
+			appHandler.CreateWithdrawal(w, req)
 
 			res := w.Result()
 

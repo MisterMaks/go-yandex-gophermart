@@ -419,7 +419,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 		AccrualSystemClient:          nil,
 		passwordKey:                  "",
 		tokenKey:                     "",
-		tokenExp:                     5 * time.Second,
+		tokenExp:                     0,
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
@@ -496,6 +496,153 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 				assert.Equal(t, tt.want.order, o)
 				oFromChan := <-appUsecase.processOrdersChan
 				assert.Equal(t, tt.want.order, oFromChan)
+			}
+		})
+	}
+}
+
+func TestAppUsecase_CreateWithdrawal(t *testing.T) {
+	userID := uint(1)
+	number := "4561261212345467"
+	invalidNumber := "4561261212345464"
+	uploadedNumber := "4561261212345566"
+	uploadedByAnotherUserNumber := "4661261212345565"
+	sum := float64(100)
+	bigSum := float64(1000)
+
+	withdrawal := &app.Withdrawal{
+		ID:          1,
+		UserID:      userID,
+		OrderNumber: number,
+		Sum:         sum,
+		ProcessedAt: time.Now(),
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, sum).Return(withdrawal, nil)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, uploadedNumber, gomock.Any()).Return(nil, sql.ErrNoRows)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, uploadedByAnotherUserNumber, gomock.Any()).
+		Return(
+			nil,
+			&pgconn.PgError{
+				Code:    "23505",
+				Message: "duplicate key value violates unique constraint \"order_number_key\"",
+			},
+		)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, bigSum).
+		Return(
+			nil,
+			&pgconn.PgError{
+				Code:    "23514",
+				Message: "new row for relation \"balance\" violates check constraint \"balance_current_check\"",
+			},
+		)
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	type args struct {
+		userID uint
+		number string
+		sum    float64
+	}
+
+	type want struct {
+		withdrawal *app.Withdrawal
+		err        error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid data",
+			args: args{
+				userID: userID,
+				number: number,
+				sum:    sum,
+			},
+			want: want{
+				withdrawal: withdrawal,
+				err:        nil,
+			},
+		},
+		{
+			name: "invalid number",
+			args: args{
+				userID: userID,
+				number: invalidNumber,
+				sum:    sum,
+			},
+			want: want{
+				withdrawal: nil,
+				err:        app.ErrInvalidOrderNumber,
+			},
+		},
+		{
+			name: "uploaded number",
+			args: args{
+				userID: userID,
+				number: uploadedNumber,
+				sum:    sum,
+			},
+			want: want{
+				withdrawal: nil,
+				err:        app.ErrOrderUploaded,
+			},
+		},
+		{
+			name: "number uploaded by another user",
+			args: args{
+				userID: userID,
+				number: uploadedByAnotherUserNumber,
+				sum:    sum,
+			},
+			want: want{
+				withdrawal: nil,
+				err:        app.ErrOrderUploadedByAnotherUser,
+			},
+		},
+		{
+			name: "insufficient funds",
+			args: args{
+				userID: userID,
+				number: number,
+				sum:    bigSum,
+			},
+			want: want{
+				withdrawal: nil,
+				err:        app.ErrInsufficientFunds,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, err := appUsecase.CreateWithdrawal(nil, tt.args.userID, tt.args.number, tt.args.sum)
+			assert.ErrorIs(t, err, tt.want.err)
+			if err == nil {
+				assert.Equal(t, tt.want.withdrawal, w)
 			}
 		})
 	}

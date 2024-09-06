@@ -240,7 +240,7 @@ func (ar *AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, e
 	}, nil
 }
 
-func (ar *AppRepo) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
+func (ar *AppRepo) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
 	// запускаем транзакцию
 	tx, err := ar.db.BeginTx(ctx, nil)
 	if err != nil {

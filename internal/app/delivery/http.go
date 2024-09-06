@@ -43,7 +43,7 @@ type AppUsecaseInterface interface {
 	CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
 	GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
 	GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
-	CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+	CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
 	GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
 }
 
@@ -316,7 +316,7 @@ func (ah *AppHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
+func (ah *AppHandler) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
 	logger.Info("Getting balance")
@@ -359,7 +359,7 @@ func (ah *AppHandler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = ah.AppUsecase.CreateWithdraw(r.Context(), userID, req.Order, req.Sum)
+	_, err = ah.AppUsecase.CreateWithdrawal(r.Context(), userID, req.Order, req.Sum)
 	if err != nil {
 		logger.Warn("Failed to create withdraw",
 			zap.Error(err),

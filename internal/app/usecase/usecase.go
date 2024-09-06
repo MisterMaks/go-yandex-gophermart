@@ -32,7 +32,7 @@ type AppRepoInterface interface {
 	GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
 	GetNewOrders(ctx context.Context) ([]*app.Order, error)
 	GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
-	CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+	CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
 	GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
 }
 
@@ -377,13 +377,13 @@ func (au *AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance
 	return au.AppRepo.GetBalance(ctx, userID)
 }
 
-func (au *AppUsecase) CreateWithdraw(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
+func (au *AppUsecase) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) {
 	ok, err := luhnAlgorithm(orderNumber)
 	if !ok || err != nil {
 		return nil, app.ErrInvalidOrderNumber
 	}
 
-	withdrawal, err := au.AppRepo.CreateWithdraw(ctx, userID, orderNumber, sum)
+	withdrawal, err := au.AppRepo.CreateWithdrawal(ctx, userID, orderNumber, sum)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, app.ErrOrderUploaded
