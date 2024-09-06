@@ -647,3 +647,91 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 		})
 	}
 }
+
+func TestLuhnAlgorithm(t *testing.T) {
+	evenLenNumber := "4561261212345467"
+	invalidEvenLenNumber := "4561261212345464"
+	oddLenNumber := "456126121234548"
+	invalidOddLenNumber := "456126121234546"
+	badNumber := "bad_number"
+
+	type args struct {
+		number string
+	}
+
+	type want struct {
+		ok      bool
+		wantErr bool
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid even number",
+			args: args{
+				number: evenLenNumber,
+			},
+			want: want{
+				ok:      true,
+				wantErr: false,
+			},
+		},
+		{
+			name: "invalid even number",
+			args: args{
+				number: invalidEvenLenNumber,
+			},
+			want: want{
+				ok:      false,
+				wantErr: false,
+			},
+		},
+		{
+			name: "valid odd number",
+			args: args{
+				number: oddLenNumber,
+			},
+			want: want{
+				ok:      true,
+				wantErr: false,
+			},
+		},
+		{
+			name: "invalid odd number",
+			args: args{
+				number: invalidOddLenNumber,
+			},
+			want: want{
+				ok:      false,
+				wantErr: false,
+			},
+		},
+		{
+			name: "bad number",
+			args: args{
+				number: badNumber,
+			},
+			want: want{
+				ok:      false,
+				wantErr: true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ok, err := luhnAlgorithm(tt.args.number)
+			if tt.want.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			if err == nil {
+				assert.Equal(t, tt.want.ok, ok)
+			}
+		})
+	}
+}
