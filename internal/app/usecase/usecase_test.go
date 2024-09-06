@@ -27,7 +27,6 @@ func TestAppUsecase_Register(t *testing.T) {
 	}
 
 	type args struct {
-		ctx      context.Context
 		login    string
 		password string
 	}
@@ -45,7 +44,6 @@ func TestAppUsecase_Register(t *testing.T) {
 		{
 			name: "valid data",
 			args: args{
-				ctx:      nil,
 				login:    login,
 				password: password,
 			},
@@ -57,7 +55,6 @@ func TestAppUsecase_Register(t *testing.T) {
 		{
 			name: "invalid login",
 			args: args{
-				ctx:      nil,
 				login:    invalidLogin,
 				password: password,
 			},
@@ -69,7 +66,6 @@ func TestAppUsecase_Register(t *testing.T) {
 		{
 			name: "login taken",
 			args: args{
-				ctx:      nil,
 				login:    existedLogin,
 				password: password,
 			},
@@ -81,7 +77,6 @@ func TestAppUsecase_Register(t *testing.T) {
 		{
 			name: "invalid password",
 			args: args{
-				ctx:      nil,
 				login:    login,
 				password: invalidPassword,
 			},
@@ -120,9 +115,9 @@ func TestAppUsecase_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := appUsecase.Register(tt.args.ctx, tt.args.login, tt.args.password)
+			u, err := appUsecase.Register(nil, tt.args.login, tt.args.password)
 			assert.ErrorIs(t, err, tt.want.err)
-			if err != nil {
+			if err == nil {
 				assert.Equal(t, tt.want.user, u)
 			}
 		})
@@ -143,7 +138,6 @@ func TestAppUsecase_Login(t *testing.T) {
 	}
 
 	type args struct {
-		ctx      context.Context
 		login    string
 		password string
 	}
@@ -161,7 +155,6 @@ func TestAppUsecase_Login(t *testing.T) {
 		{
 			name: "valid data",
 			args: args{
-				ctx:      nil,
 				login:    login,
 				password: password,
 			},
@@ -173,7 +166,6 @@ func TestAppUsecase_Login(t *testing.T) {
 		{
 			name: "invalid login",
 			args: args{
-				ctx:      nil,
 				login:    invalidLogin,
 				password: password,
 			},
@@ -185,7 +177,6 @@ func TestAppUsecase_Login(t *testing.T) {
 		{
 			name: "incorrect password",
 			args: args{
-				ctx:      nil,
 				login:    login,
 				password: incorrectPassword,
 			},
@@ -197,7 +188,6 @@ func TestAppUsecase_Login(t *testing.T) {
 		{
 			name: "invalid password",
 			args: args{
-				ctx:      nil,
 				login:    login,
 				password: invalidPassword,
 			},
@@ -236,9 +226,9 @@ func TestAppUsecase_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := appUsecase.Login(tt.args.ctx, tt.args.login, tt.args.password)
+			u, err := appUsecase.Login(nil, tt.args.login, tt.args.password)
 			assert.ErrorIs(t, err, tt.want.err)
-			if err != nil {
+			if err == nil {
 				assert.Equal(t, tt.want.user, u)
 			}
 		})
@@ -249,7 +239,6 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 	userID := uint(1)
 
 	type args struct {
-		ctx    context.Context
 		userID uint
 	}
 
@@ -266,7 +255,6 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 		{
 			name: "valid data",
 			args: args{
-				ctx:    nil,
 				userID: userID,
 			},
 			want: want{
@@ -291,7 +279,7 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			token, errBuildJWTString := appUsecase.BuildJWTString(tt.args.ctx, tt.args.userID)
+			token, errBuildJWTString := appUsecase.BuildJWTString(nil, tt.args.userID)
 			if tt.want.wantErr {
 				assert.Error(t, errBuildJWTString)
 			} else {
@@ -333,7 +321,6 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 	invalidToken := "invalid_token"
 
 	type args struct {
-		ctx   context.Context
 		token string
 	}
 
@@ -350,7 +337,6 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 		{
 			name: "valid data",
 			args: args{
-				ctx:   nil,
 				token: token,
 			},
 			want: want{
@@ -361,7 +347,6 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 		{
 			name: "invalid token",
 			args: args{
-				ctx:   nil,
 				token: invalidToken,
 			},
 			want: want{
@@ -389,4 +374,129 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 	time.Sleep(appUsecase.tokenExp + 1)
 	_, err = appUsecase.GetUserID(token)
 	assert.Error(t, err)
+}
+
+func TestAppUsecase_CreateOrder(t *testing.T) {
+	userID := uint(1)
+	number := "4561261212345467"
+	invalidNumber := "4561261212345464"
+	uploadedNumber := "4561261212345566"
+	uploadedByAnotherUserNumber := "4661261212345565"
+
+	order := &app.Order{
+		ID:         1,
+		UserID:     userID,
+		Number:     number,
+		Status:     "NEW",
+		Accrual:    nil,
+		UploadedAt: time.Now(),
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().CreateOrder(gomock.Any(), userID, number).Return(order, nil)
+	m.EXPECT().CreateOrder(gomock.Any(), userID, uploadedNumber).Return(nil, sql.ErrNoRows)
+	m.EXPECT().CreateOrder(gomock.Any(), userID, uploadedByAnotherUserNumber).
+		Return(
+			nil,
+			&pgconn.PgError{
+				Code:    "23505",
+				Message: "duplicate key value violates unique constraint \"order_number_key\"",
+			},
+		)
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     5 * time.Second,
+		processOrdersChan:            make(chan *app.Order, 1),
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             ctx,
+		processOrdersCtxCancel:       cancel,
+	}
+
+	type args struct {
+		userID uint
+		number string
+	}
+
+	type want struct {
+		order *app.Order
+		err   error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid data",
+			args: args{
+				userID: userID,
+				number: number,
+			},
+			want: want{
+				order: order,
+				err:   nil,
+			},
+		},
+		{
+			name: "invalid number",
+			args: args{
+				userID: userID,
+				number: invalidNumber,
+			},
+			want: want{
+				order: nil,
+				err:   app.ErrInvalidOrderNumber,
+			},
+		},
+		{
+			name: "uploaded number",
+			args: args{
+				userID: userID,
+				number: uploadedNumber,
+			},
+			want: want{
+				order: nil,
+				err:   app.ErrOrderUploaded,
+			},
+		},
+		{
+			name: "number uploaded by another user",
+			args: args{
+				userID: userID,
+				number: uploadedByAnotherUserNumber,
+			},
+			want: want{
+				order: nil,
+				err:   app.ErrOrderUploadedByAnotherUser,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o, err := appUsecase.CreateOrder(nil, tt.args.userID, tt.args.number)
+			assert.ErrorIs(t, err, tt.want.err)
+			if err == nil {
+				assert.Equal(t, tt.want.order, o)
+				oFromChan := <-appUsecase.processOrdersChan
+				assert.Equal(t, tt.want.order, oFromChan)
+			}
+		})
+	}
 }
