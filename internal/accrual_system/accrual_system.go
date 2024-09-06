@@ -58,6 +58,8 @@ func (asc AccrualSystemClient) GetOrderInfo(ctx context.Context, orderNumber str
 			return OrderInfo{}, ErrTooManyRequests
 		case 500:
 			return OrderInfo{}, ErrInternalServerError
+		default:
+			return OrderInfo{}, ErrInternalServerError
 		}
 	}
 
