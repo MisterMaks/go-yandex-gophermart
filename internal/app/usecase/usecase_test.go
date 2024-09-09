@@ -13,6 +13,134 @@ import (
 	"time"
 )
 
+func TestNewAppUsecase(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	mockARI := mocks.NewMockAppRepoInterface(ctrl)
+
+	mockARI.EXPECT().GetNewOrders(gomock.Any()).Return(nil, nil).AnyTimes()
+
+	mockASCI := mocks.NewMockAccrualSystemClientInterface(ctrl)
+
+	passwordKey := "12345"
+	tokenKey := "00000"
+	tokenExp := 10 * time.Second
+	processOrderChanSize := uint(20 * time.Second)
+	processOrderWaitingTime := 30 * time.Second
+	updateExistedNewOrdersWaitingTime := 40 * time.Second
+
+	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      mockARI,
+		AccrualSystemClient:          mockASCI,
+		passwordKey:                  passwordKey,
+		tokenKey:                     tokenKey,
+		tokenExp:                     tokenExp,
+		processOrdersChan:            make(chan *app.Order, processOrderChanSize),
+		processOrdersTicker:          time.NewTicker(processOrderWaitingTime),
+		updateExistedNewOrdersTicker: time.NewTicker(updateExistedNewOrdersWaitingTime),
+		processOrdersCtx:             processOrderCtx,
+		processOrdersCtxCancel:       processOrderCtxCancel,
+	}
+
+	type args struct {
+		passwordKey                       string
+		tokenKey                          string
+		tokenExp                          time.Duration
+		processOrderChanSize              uint
+		processOrderWaitingTime           time.Duration
+		updateExistedNewOrdersWaitingTime time.Duration
+	}
+
+	type want struct {
+		appUsecase *AppUsecase
+		err        error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "valid data",
+			args: args{
+				passwordKey:                       passwordKey,
+				tokenKey:                          tokenKey,
+				tokenExp:                          tokenExp,
+				processOrderChanSize:              processOrderChanSize,
+				processOrderWaitingTime:           processOrderWaitingTime,
+				updateExistedNewOrdersWaitingTime: updateExistedNewOrdersWaitingTime,
+			},
+			want: want{
+				appUsecase: appUsecase,
+				err:        nil,
+			},
+		},
+		{
+			name: "empty password key",
+			args: args{
+				passwordKey:                       "",
+				tokenKey:                          tokenKey,
+				tokenExp:                          tokenExp,
+				processOrderChanSize:              processOrderChanSize,
+				processOrderWaitingTime:           processOrderWaitingTime,
+				updateExistedNewOrdersWaitingTime: updateExistedNewOrdersWaitingTime,
+			},
+			want: want{
+				appUsecase: nil,
+				err:        ErrEmptyPasswordKey,
+			},
+		},
+		{
+			name: "empty password key",
+			args: args{
+				passwordKey:                       passwordKey,
+				tokenKey:                          "",
+				tokenExp:                          tokenExp,
+				processOrderChanSize:              processOrderChanSize,
+				processOrderWaitingTime:           processOrderWaitingTime,
+				updateExistedNewOrdersWaitingTime: updateExistedNewOrdersWaitingTime,
+			},
+			want: want{
+				appUsecase: nil,
+				err:        ErrEmptyTokenKey,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			au, err := NewAppUsecase(
+				mockARI,
+				mockASCI,
+				tt.args.passwordKey,
+				tt.args.tokenKey,
+				tt.args.tokenExp,
+				tt.args.processOrderChanSize,
+				tt.args.processOrderWaitingTime,
+				tt.args.updateExistedNewOrdersWaitingTime,
+			)
+			assert.ErrorIs(t, err, tt.want.err)
+			if err == nil {
+				assert.Equal(t, tt.want.appUsecase.passwordKey, au.passwordKey)
+				assert.Equal(t, tt.want.appUsecase.tokenKey, au.tokenKey)
+				assert.Equal(t, tt.want.appUsecase.tokenExp, au.tokenExp)
+				assert.Equal(t, len(tt.want.appUsecase.processOrdersChan), len(au.processOrdersChan))
+				assert.NotNil(t, au.processOrdersTicker)
+				assert.NotNil(t, au.updateExistedNewOrdersTicker)
+				assert.NotNil(t, au.processOrdersCtx)
+				assert.NotNil(t, au.processOrdersCtxCancel)
+				au.Close()
+			}
+		})
+	}
+}
+
 func TestAppUsecase_Register(t *testing.T) {
 	login := "login"
 	password := "password"
