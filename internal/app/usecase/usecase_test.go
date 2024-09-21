@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"database/sql"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/mocks"
 	"github.com/golang/mock/gomock"
@@ -20,17 +21,17 @@ func TestNewAppUsecase(t *testing.T) {
 
 	// создаём объект-заглушку
 	mockARI := mocks.NewMockAppRepoInterface(ctrl)
-
 	mockARI.EXPECT().GetNewOrders(gomock.Any()).Return(nil, nil).AnyTimes()
 
 	mockASCI := mocks.NewMockAccrualSystemClientInterface(ctrl)
+	mockASCI.EXPECT().GetOrderInfo(gomock.Any(), gomock.Any()).Return(accrual_system.OrderInfo{}, nil).AnyTimes()
 
 	passwordKey := "12345"
 	tokenKey := "00000"
 	tokenExp := 10 * time.Second
-	processOrderChanSize := uint(20 * time.Second)
-	processOrderWaitingTime := 30 * time.Second
-	updateExistedNewOrdersWaitingTime := 40 * time.Second
+	processOrderChanSize := uint(1)
+	processOrderWaitingTime := time.Second
+	updateExistedNewOrdersWaitingTime := time.Second
 
 	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
 
@@ -97,7 +98,7 @@ func TestNewAppUsecase(t *testing.T) {
 			},
 		},
 		{
-			name: "empty password key",
+			name: "empty token key",
 			args: args{
 				passwordKey:                       passwordKey,
 				tokenKey:                          "",
@@ -139,6 +140,58 @@ func TestNewAppUsecase(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppUsecase_updateExistedNewOrders(t *testing.T) {
+	orders := []*app.Order{
+		{
+			ID:         1,
+			UserID:     1,
+			Number:     "12345",
+			Status:     "NEW",
+			Accrual:    nil,
+			UploadedAt: time.Now(),
+		},
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	// гарантируем, что заглушка
+	// при вызове с аргументом "Key" вернёт "Value"
+	m.EXPECT().GetNewOrders(gomock.Any()).Return(orders, nil).AnyTimes()
+
+	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            make(chan *app.Order, 1),
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
+		processOrdersCtx:             processOrderCtx,
+		processOrdersCtxCancel:       processOrderCtxCancel,
+	}
+
+	go appUsecase.updateExistedNewOrders()
+
+	go func() {
+		select {
+		case order := <-appUsecase.processOrdersChan:
+			assert.Equal(t, orders[0], order)
+			appUsecase.Close()
+		case <-time.NewTicker(time.Second).C:
+			assert.Fail(t, "no order in chan after timeout")
+			appUsecase.Close()
+		}
+	}()
 }
 
 func TestAppUsecase_Register(t *testing.T) {
