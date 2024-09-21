@@ -93,8 +93,7 @@ func NewAppUsecase(
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.processOrder()
-	go appUsecase.updateExistedNewOrders()
+	appUsecase.runWorker()
 
 	return appUsecase, nil
 }
@@ -102,6 +101,11 @@ func NewAppUsecase(
 func (au *AppUsecase) Close() {
 	au.processOrdersCtxCancel()
 	close(au.processOrdersChan)
+}
+
+func (au *AppUsecase) runWorker() {
+	go au.processOrder()
+	go au.updateExistedNewOrders()
 }
 
 func (au *AppUsecase) updateExistedNewOrders() {
