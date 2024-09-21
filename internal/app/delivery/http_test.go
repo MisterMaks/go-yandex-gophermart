@@ -125,13 +125,13 @@ func TestAppHandler_Register(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().Register(gomock.Any(), login, password).Return(user, nil)
-	m.EXPECT().Register(gomock.Any(), takenLogin, password).Return(nil, app.ErrLoginTaken)
-	m.EXPECT().Register(gomock.Any(), invalidLogin, password).Return(nil, app.ErrInvalidLoginPasswordFormat)
-	m.EXPECT().Register(gomock.Any(), login, invalidPassword).Return(nil, app.ErrInvalidLoginPasswordFormat)
-	m.EXPECT().Register(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, app.ErrInvalidLoginPasswordFormat)
+	m.EXPECT().Register(gomock.Any(), login, password).Return(user, nil).AnyTimes()
+	m.EXPECT().Register(gomock.Any(), takenLogin, password).Return(nil, app.ErrLoginTaken).AnyTimes()
+	m.EXPECT().Register(gomock.Any(), invalidLogin, password).Return(nil, app.ErrInvalidLoginPasswordFormat).AnyTimes()
+	m.EXPECT().Register(gomock.Any(), login, invalidPassword).Return(nil, app.ErrInvalidLoginPasswordFormat).AnyTimes()
+	m.EXPECT().Register(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, app.ErrInvalidLoginPasswordFormat).AnyTimes()
 
-	m.EXPECT().BuildJWTString(gomock.Any(), user.ID).Return(jwtString, nil)
+	m.EXPECT().BuildJWTString(gomock.Any(), user.ID).Return(jwtString, nil).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -258,12 +258,12 @@ func TestAppHandler_Login(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().Login(gomock.Any(), login, password).Return(user, nil)
-	m.EXPECT().Login(gomock.Any(), invalidLogin, password).Return(nil, app.ErrInvalidLoginPassword)
-	m.EXPECT().Login(gomock.Any(), login, invalidPassword).Return(nil, app.ErrInvalidLoginPassword)
-	m.EXPECT().Login(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, app.ErrInvalidLoginPassword)
+	m.EXPECT().Login(gomock.Any(), login, password).Return(user, nil).AnyTimes()
+	m.EXPECT().Login(gomock.Any(), invalidLogin, password).Return(nil, app.ErrInvalidLoginPassword).AnyTimes()
+	m.EXPECT().Login(gomock.Any(), login, invalidPassword).Return(nil, app.ErrInvalidLoginPassword).AnyTimes()
+	m.EXPECT().Login(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, app.ErrInvalidLoginPassword).AnyTimes()
 
-	m.EXPECT().BuildJWTString(gomock.Any(), user.ID).Return(jwtString, nil)
+	m.EXPECT().BuildJWTString(gomock.Any(), user.ID).Return(jwtString, nil).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -406,10 +406,10 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateOrder(gomock.Any(), userID, orderNumber).Return(order, nil)
-	m.EXPECT().CreateOrder(gomock.Any(), userID, existedOrderNumber).Return(nil, app.ErrOrderUploaded)
-	m.EXPECT().CreateOrder(gomock.Any(), userID, someoneElsesOrderNumber).Return(nil, app.ErrOrderUploadedByAnotherUser)
-	m.EXPECT().CreateOrder(gomock.Any(), userID, invalidOrderNumberFormat).Return(nil, app.ErrInvalidOrderNumber)
+	m.EXPECT().CreateOrder(gomock.Any(), userID, orderNumber).Return(order, nil).AnyTimes()
+	m.EXPECT().CreateOrder(gomock.Any(), userID, existedOrderNumber).Return(nil, app.ErrOrderUploaded).AnyTimes()
+	m.EXPECT().CreateOrder(gomock.Any(), userID, someoneElsesOrderNumber).Return(nil, app.ErrOrderUploadedByAnotherUser).AnyTimes()
+	m.EXPECT().CreateOrder(gomock.Any(), userID, invalidOrderNumberFormat).Return(nil, app.ErrInvalidOrderNumber).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -534,8 +534,8 @@ func TestAppHandler_GetOrders(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().GetOrders(gomock.Any(), userID).Return([]*app.Order{order, orderWithoutAccrual}, nil)
-	m.EXPECT().GetOrders(gomock.Any(), userIDWithoutOrders).Return([]*app.Order{}, nil)
+	m.EXPECT().GetOrders(gomock.Any(), userID).Return([]*app.Order{order, orderWithoutAccrual}, nil).AnyTimes()
+	m.EXPECT().GetOrders(gomock.Any(), userIDWithoutOrders).Return([]*app.Order{}, nil).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -627,7 +627,7 @@ func TestAppHandler_GetBalance(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().GetBalance(gomock.Any(), userID).Return(balance, nil)
+	m.EXPECT().GetBalance(gomock.Any(), userID).Return(balance, nil).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -753,9 +753,9 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, orderNumber, sum).Return(withdrawal, nil)
-	m.EXPECT().CreateWithdrawal(gomock.Any(), userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds)
-	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrderNumber)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, orderNumber, sum).Return(withdrawal, nil).AnyTimes()
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userIDWithInsufficientFunds, orderNumber, sum).Return(nil, app.ErrInsufficientFunds).AnyTimes()
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, invalidOrderNumber, sum).Return(nil, app.ErrInvalidOrderNumber).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 
@@ -853,8 +853,8 @@ func TestAppHandler_GetWithdrawals(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().GetWithdrawals(gomock.Any(), userID).Return([]*app.Withdrawal{withdrawal}, nil)
-	m.EXPECT().GetWithdrawals(gomock.Any(), userIDWithoutWithdrawals).Return([]*app.Withdrawal{}, nil)
+	m.EXPECT().GetWithdrawals(gomock.Any(), userID).Return([]*app.Withdrawal{withdrawal}, nil).AnyTimes()
+	m.EXPECT().GetWithdrawals(gomock.Any(), userIDWithoutWithdrawals).Return([]*app.Withdrawal{}, nil).AnyTimes()
 
 	appHandler := NewAppHandler(m)
 

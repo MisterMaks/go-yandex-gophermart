@@ -226,7 +226,14 @@ func TestAppUsecase_Register(t *testing.T) {
 	// при вызове с аргументом "Key" вернёт "Value"
 	m.EXPECT().CreateUser(gomock.Any(), login, gomock.Any()).Return(user, nil).AnyTimes()
 
-	m.EXPECT().CreateUser(gomock.Any(), existedLogin, gomock.Any()).Return(nil, &pgconn.PgError{Code: "23505", Message: "duplicate key value violates unique constraint \"user_login_key\""})
+	m.EXPECT().CreateUser(
+		gomock.Any(),
+		existedLogin,
+		gomock.Any(),
+	).Return(
+		nil,
+		&pgconn.PgError{Code: "23505", Message: "duplicate key value violates unique constraint \"user_login_key\""},
+	).AnyTimes()
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      m,
@@ -348,9 +355,9 @@ func TestAppUsecase_Login(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().AuthUser(gomock.Any(), login, appUsecase.hashPassword(password)).Return(user, nil)
+	m.EXPECT().AuthUser(gomock.Any(), login, appUsecase.hashPassword(password)).Return(user, nil).AnyTimes()
 
-	m.EXPECT().AuthUser(gomock.Any(), login, gomock.Not(appUsecase.hashPassword(password))).Return(nil, sql.ErrNoRows)
+	m.EXPECT().AuthUser(gomock.Any(), login, gomock.Not(appUsecase.hashPassword(password))).Return(nil, sql.ErrNoRows).AnyTimes()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -531,16 +538,19 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateOrder(gomock.Any(), userID, number).Return(order, nil)
-	m.EXPECT().CreateOrder(gomock.Any(), userID, uploadedNumber).Return(nil, sql.ErrNoRows)
-	m.EXPECT().CreateOrder(gomock.Any(), userID, uploadedByAnotherUserNumber).
-		Return(
-			nil,
-			&pgconn.PgError{
-				Code:    "23505",
-				Message: "duplicate key value violates unique constraint \"order_number_key\"",
-			},
-		)
+	m.EXPECT().CreateOrder(gomock.Any(), userID, number).Return(order, nil).AnyTimes()
+	m.EXPECT().CreateOrder(gomock.Any(), userID, uploadedNumber).Return(nil, sql.ErrNoRows).AnyTimes()
+	m.EXPECT().CreateOrder(
+		gomock.Any(),
+		userID,
+		uploadedByAnotherUserNumber,
+	).Return(
+		nil,
+		&pgconn.PgError{
+			Code:    "23505",
+			Message: "duplicate key value violates unique constraint \"order_number_key\"",
+		},
+	).AnyTimes()
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      m,
@@ -658,8 +668,13 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 
 	// гарантируем, что заглушка
 	// при вызове с аргументом "Key" вернёт "Value"
-	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, sum).Return(withdrawal, nil)
-	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, uploadedNumber, gomock.Any()).Return(nil, sql.ErrNoRows)
+	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, sum).Return(withdrawal, nil).AnyTimes()
+	m.EXPECT().CreateWithdrawal(
+		gomock.Any(),
+		userID,
+		uploadedNumber,
+		gomock.Any(),
+	).Return(nil, sql.ErrNoRows).AnyTimes()
 	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, uploadedByAnotherUserNumber, gomock.Any()).
 		Return(
 			nil,
@@ -667,7 +682,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 				Code:    "23505",
 				Message: "duplicate key value violates unique constraint \"order_number_key\"",
 			},
-		)
+		).AnyTimes()
 	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, bigSum).
 		Return(
 			nil,
@@ -675,7 +690,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 				Code:    "23514",
 				Message: "new row for relation \"balance\" violates check constraint \"balance_current_check\"",
 			},
-		)
+		).AnyTimes()
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      m,
