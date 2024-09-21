@@ -142,6 +142,35 @@ func TestNewAppUsecase(t *testing.T) {
 	}
 }
 
+func TestAppUsecase_Close(t *testing.T) {
+	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      nil,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            make(chan *app.Order, 1),
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
+		processOrdersCtx:             processOrderCtx,
+		processOrdersCtxCancel:       processOrderCtxCancel,
+	}
+
+	appUsecase.Close()
+
+	_, ok := <-appUsecase.processOrdersChan
+	assert.False(t, ok)
+
+	select {
+	case <-appUsecase.processOrdersCtx.Done():
+		return
+	case <-time.NewTicker(time.Second).C:
+		assert.Fail(t, "context not closed")
+	}
+}
+
 func TestAppUsecase_updateExistedNewOrders(t *testing.T) {
 	orders := []*app.Order{
 		{
@@ -192,6 +221,218 @@ func TestAppUsecase_updateExistedNewOrders(t *testing.T) {
 			appUsecase.Close()
 		}
 	}()
+}
+
+func TestAppUsecase_processOrder(t *testing.T) {
+	orderRegisteredNumber := "1"
+	orderInvalidNumber := "2"
+	orderProcessingNumber := "3"
+	orderProcessedNumber := "4"
+
+	accrual := float64(100)
+
+	uploadedAt := time.Now()
+
+	type args struct {
+		order *app.Order
+	}
+
+	type want struct {
+		order *app.Order
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "registered order",
+			args: args{
+				order: &app.Order{
+					ID:         1,
+					UserID:     1,
+					Number:     orderRegisteredNumber,
+					Status:     "NEW",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+			want: want{
+				order: nil,
+			},
+		},
+		{
+			name: "invalid order",
+			args: args{
+				order: &app.Order{
+					ID:         2,
+					UserID:     2,
+					Number:     orderInvalidNumber,
+					Status:     "NEW",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+			want: want{
+				order: &app.Order{
+					ID:         2,
+					UserID:     2,
+					Number:     orderInvalidNumber,
+					Status:     "INVALID",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+		},
+		{
+			name: "processing order",
+			args: args{
+				order: &app.Order{
+					ID:         3,
+					UserID:     3,
+					Number:     orderProcessingNumber,
+					Status:     "NEW",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+			want: want{
+				order: &app.Order{
+					ID:         3,
+					UserID:     3,
+					Number:     orderProcessingNumber,
+					Status:     "PROCESSING",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+		},
+		{
+			name: "processed order",
+			args: args{
+				order: &app.Order{
+					ID:         4,
+					UserID:     4,
+					Number:     orderProcessedNumber,
+					Status:     "NEW",
+					Accrual:    nil,
+					UploadedAt: uploadedAt,
+				},
+			},
+			want: want{
+				order: &app.Order{
+					ID:         4,
+					UserID:     4,
+					Number:     orderProcessedNumber,
+					Status:     "PROCESSED",
+					Accrual:    &accrual,
+					UploadedAt: uploadedAt,
+				},
+			},
+		},
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	mockARI := mocks.NewMockAppRepoInterface(ctrl)
+
+	testOrderChan := make(chan *app.Order, 1)
+	mockARI.EXPECT().UpdateOrder(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, order *app.Order) error {
+			testOrderChan <- order
+			return nil
+		},
+	).AnyTimes()
+
+	mockASCI := mocks.NewMockAccrualSystemClientInterface(ctrl)
+
+	mockASCI.EXPECT().GetOrderInfo(
+		gomock.Any(),
+		orderRegisteredNumber,
+	).Return(
+		accrual_system.OrderInfo{
+			Number:  orderRegisteredNumber,
+			Status:  "REGISTERED",
+			Accrual: nil,
+		},
+		nil,
+	).AnyTimes()
+
+	mockASCI.EXPECT().GetOrderInfo(
+		gomock.Any(),
+		orderInvalidNumber,
+	).Return(
+		accrual_system.OrderInfo{
+			Number:  orderInvalidNumber,
+			Status:  "INVALID",
+			Accrual: nil,
+		},
+		nil,
+	).AnyTimes()
+
+	mockASCI.EXPECT().GetOrderInfo(
+		gomock.Any(),
+		orderProcessingNumber,
+	).Return(
+		accrual_system.OrderInfo{
+			Number:  orderProcessingNumber,
+			Status:  "PROCESSING",
+			Accrual: nil,
+		},
+		nil,
+	).AnyTimes()
+
+	mockASCI.EXPECT().GetOrderInfo(
+		gomock.Any(),
+		orderProcessedNumber,
+	).Return(
+		accrual_system.OrderInfo{
+			Number:  orderProcessedNumber,
+			Status:  "PROCESSED",
+			Accrual: &accrual,
+		},
+		nil,
+	).AnyTimes()
+
+	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      mockARI,
+		AccrualSystemClient:          mockASCI,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            make(chan *app.Order, 1),
+		processOrdersTicker:          time.NewTicker(time.Millisecond),
+		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
+		processOrdersCtx:             processOrderCtx,
+		processOrdersCtxCancel:       processOrderCtxCancel,
+	}
+
+	go appUsecase.processOrder()
+
+	ticker := time.NewTicker(time.Second)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			appUsecase.processOrdersChan <- tt.args.order
+			select {
+			case order := <-testOrderChan:
+				assert.Equal(t, tt.want.order, order)
+			case <-ticker.C:
+				if tt.args.order.Number == orderRegisteredNumber {
+					return
+				}
+				assert.Fail(t, "no order in chan after timeout")
+			}
+		})
+	}
+
+	appUsecase.Close()
 }
 
 func TestAppUsecase_Register(t *testing.T) {
