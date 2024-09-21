@@ -100,8 +100,8 @@ func NewAppUsecase(
 }
 
 func (au *AppUsecase) Close() {
-	close(au.processOrdersChan)
 	au.processOrdersCtxCancel()
+	close(au.processOrdersChan)
 }
 
 func (au *AppUsecase) updateExistedNewOrders() {
@@ -109,6 +109,8 @@ func (au *AppUsecase) updateExistedNewOrders() {
 Loop:
 	for {
 		select {
+		case <-au.processOrdersCtx.Done():
+			return
 		case <-au.updateExistedNewOrdersTicker.C:
 			iterationID := uuid.New().String()
 			ctxLogger := logger.With(
@@ -122,9 +124,9 @@ Loop:
 			}
 			for _, order := range orders {
 				select {
-				case au.processOrdersChan <- order:
 				case <-au.processOrdersCtx.Done():
 					return
+				case au.processOrdersChan <- order:
 				}
 			}
 		}
@@ -137,6 +139,8 @@ func (au *AppUsecase) processOrder() {
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
 	for {
 		select {
+		case <-au.processOrdersCtx.Done():
+			return
 		case order := <-au.processOrdersChan:
 			orders = append(orders, order)
 		case <-au.processOrdersTicker.C:
