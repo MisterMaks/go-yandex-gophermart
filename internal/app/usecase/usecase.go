@@ -192,6 +192,7 @@ func (au *AppUsecase) processOrder() {
 					continue
 				}
 			}
+			orders = orders[:0]
 		}
 	}
 
