@@ -160,6 +160,8 @@ func TestAppHandler_Register(t *testing.T) {
 
 				assert.True(t, accessTokenOk, "Invalid cookies")
 			}
+
+			res.Body.Close()
 		})
 	}
 }
@@ -292,6 +294,8 @@ func TestAppHandler_Login(t *testing.T) {
 
 				assert.True(t, accessTokenOk, "Invalid cookies")
 			}
+
+			res.Body.Close()
 		})
 	}
 }
@@ -427,6 +431,8 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 			res := w.Result()
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode, "Invalid status code")
+
+			res.Body.Close()
 		})
 	}
 }
@@ -773,6 +779,8 @@ func TestAppHandler_CreateWithdraw(t *testing.T) {
 			res := w.Result()
 
 			assert.Equal(t, tt.want.statusCode, res.StatusCode, "Invalid status code")
+
+			res.Body.Close()
 		})
 	}
 }

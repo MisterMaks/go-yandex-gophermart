@@ -67,8 +67,11 @@ func TestAppHandler_AuthMiddleware(t *testing.T) {
 		r.RequestURI = ""
 
 		resp, err := http.DefaultClient.Do(r)
+
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+		resp.Body.Close()
 	})
 
 	t.Run("no token", func(t *testing.T) {
@@ -76,7 +79,10 @@ func TestAppHandler_AuthMiddleware(t *testing.T) {
 		r.RequestURI = ""
 
 		resp, err := http.DefaultClient.Do(r)
+
 		require.NoError(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+		resp.Body.Close()
 	})
 }
