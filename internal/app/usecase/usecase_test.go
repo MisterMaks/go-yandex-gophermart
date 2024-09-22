@@ -544,7 +544,7 @@ func TestAppUsecase_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := appUsecase.Register(nil, tt.args.login, tt.args.password)
+			u, err := appUsecase.Register(context.Background(), tt.args.login, tt.args.password)
 			assert.ErrorIs(t, err, tt.want.err)
 			if err == nil {
 				assert.Equal(t, tt.want.user, u)
@@ -655,7 +655,7 @@ func TestAppUsecase_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := appUsecase.Login(nil, tt.args.login, tt.args.password)
+			u, err := appUsecase.Login(context.Background(), tt.args.login, tt.args.password)
 			assert.ErrorIs(t, err, tt.want.err)
 			if err == nil {
 				assert.Equal(t, tt.want.user, u)
@@ -708,7 +708,7 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			token, errBuildJWTString := appUsecase.BuildJWTString(nil, tt.args.userID)
+			token, errBuildJWTString := appUsecase.BuildJWTString(context.Background(), tt.args.userID)
 			if tt.want.wantErr {
 				assert.Error(t, errBuildJWTString)
 			} else {
@@ -723,7 +723,7 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 	}
 
 	// Check expired token
-	token, err := appUsecase.BuildJWTString(nil, userID)
+	token, err := appUsecase.BuildJWTString(context.Background(), userID)
 	assert.NoError(t, err)
 	time.Sleep(appUsecase.tokenExp + 1)
 	_, err = appUsecase.GetUserID(token)
@@ -745,7 +745,7 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 	}
 
 	userID := uint(1)
-	token, err := appUsecase.BuildJWTString(nil, userID)
+	token, err := appUsecase.BuildJWTString(context.Background(), userID)
 	require.NoError(t, err)
 	invalidToken := "invalid_token"
 
@@ -922,7 +922,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			o, err := appUsecase.CreateOrder(nil, tt.args.userID, tt.args.number)
+			o, err := appUsecase.CreateOrder(context.Background(), tt.args.userID, tt.args.number)
 			assert.ErrorIs(t, err, tt.want.err)
 			if err == nil {
 				assert.Equal(t, tt.want.order, o)
@@ -1079,7 +1079,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w, err := appUsecase.CreateWithdrawal(nil, tt.args.userID, tt.args.number, tt.args.sum)
+			w, err := appUsecase.CreateWithdrawal(context.Background(), tt.args.userID, tt.args.number, tt.args.sum)
 			assert.ErrorIs(t, err, tt.want.err)
 			if err == nil {
 				assert.Equal(t, tt.want.withdrawal, w)
