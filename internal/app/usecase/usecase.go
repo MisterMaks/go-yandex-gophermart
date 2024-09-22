@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/golang-jwt/jwt/v4"
@@ -37,7 +37,7 @@ type AppRepoInterface interface {
 }
 
 type AccrualSystemClientInterface interface {
-	GetOrderInfo(ctx context.Context, number string) (accrual_system.OrderInfo, error)
+	GetOrderInfo(ctx context.Context, number string) (accrual.OrderInfo, error)
 }
 
 type AppUsecase struct {
@@ -161,11 +161,11 @@ func (au *AppUsecase) processOrder() {
 				if err != nil {
 					logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
 					switch err {
-					case accrual_system.ErrTooManyRequests:
+					case accrual.ErrTooManyRequests:
 						break Loop
-					case accrual_system.ErrInternalServerError:
+					case accrual.ErrInternalServerError:
 						break Loop
-					case accrual_system.ErrOrderNotRegistered:
+					case accrual.ErrOrderNotRegistered:
 						continue Loop
 					default:
 						continue Loop

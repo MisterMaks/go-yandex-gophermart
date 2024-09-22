@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/gzip"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/repo"
@@ -133,7 +133,7 @@ func main() {
 		)
 	}
 
-	accrualSystemClient := accrual_system.NewAccrualSystemClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
+	accrualSystemClient := accrual.NewAccrualSystemClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
 	appUsecase, err := usecase.NewAppUsecase(
 		appRepo,
 		accrualSystemClient,

@@ -169,6 +169,11 @@ func (ar *AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, er
 		})
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return orders, nil
 }
 
@@ -212,6 +217,11 @@ func (ar *AppRepo) GetNewOrders(ctx context.Context) ([]*app.Order, error) {
 			Accrual:    accrual,
 			UploadedAt: uploadedAt,
 		})
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return orders, nil
@@ -320,6 +330,11 @@ func (ar *AppRepo) GetWithdrawals(ctx context.Context, userID uint) ([]*app.With
 			Sum:         sum,
 			ProcessedAt: processedAt,
 		})
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return withdrawals, nil

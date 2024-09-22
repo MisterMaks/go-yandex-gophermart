@@ -1,4 +1,4 @@
-package accrual_system
+package accrual
 
 import (
 	"context"

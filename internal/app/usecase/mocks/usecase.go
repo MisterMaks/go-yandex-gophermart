@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	accrual_system "github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
+	accrual "github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	app "github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -194,10 +194,10 @@ func (m *MockAccrualSystemClientInterface) EXPECT() *MockAccrualSystemClientInte
 }
 
 // GetOrderInfo mocks base method.
-func (m *MockAccrualSystemClientInterface) GetOrderInfo(ctx context.Context, number string) (accrual_system.OrderInfo, error) {
+func (m *MockAccrualSystemClientInterface) GetOrderInfo(ctx context.Context, number string) (accrual.OrderInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrderInfo", ctx, number)
-	ret0, _ := ret[0].(accrual_system.OrderInfo)
+	ret0, _ := ret[0].(accrual.OrderInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

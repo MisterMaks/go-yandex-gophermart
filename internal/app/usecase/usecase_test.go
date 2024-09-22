@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"database/sql"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual_system"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/mocks"
 	"github.com/golang/mock/gomock"
@@ -24,7 +24,7 @@ func TestNewAppUsecase(t *testing.T) {
 	mockARI.EXPECT().GetNewOrders(gomock.Any()).Return(nil, nil).AnyTimes()
 
 	mockASCI := mocks.NewMockAccrualSystemClientInterface(ctrl)
-	mockASCI.EXPECT().GetOrderInfo(gomock.Any(), gomock.Any()).Return(accrual_system.OrderInfo{}, nil).AnyTimes()
+	mockASCI.EXPECT().GetOrderInfo(gomock.Any(), gomock.Any()).Return(accrual.OrderInfo{}, nil).AnyTimes()
 
 	passwordKey := "12345"
 	tokenKey := "00000"
@@ -229,7 +229,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 	orderProcessingNumber := "3"
 	orderProcessedNumber := "4"
 
-	accrual := float64(100)
+	accrualSum := float64(100)
 
 	uploadedAt := time.Now()
 
@@ -326,7 +326,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 					UserID:     4,
 					Number:     orderProcessedNumber,
 					Status:     "PROCESSED",
-					Accrual:    &accrual,
+					Accrual:    &accrualSum,
 					UploadedAt: uploadedAt,
 				},
 			},
@@ -354,7 +354,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 		gomock.Any(),
 		orderRegisteredNumber,
 	).Return(
-		accrual_system.OrderInfo{
+		accrual.OrderInfo{
 			Number:  orderRegisteredNumber,
 			Status:  "REGISTERED",
 			Accrual: nil,
@@ -366,7 +366,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 		gomock.Any(),
 		orderInvalidNumber,
 	).Return(
-		accrual_system.OrderInfo{
+		accrual.OrderInfo{
 			Number:  orderInvalidNumber,
 			Status:  "INVALID",
 			Accrual: nil,
@@ -378,7 +378,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 		gomock.Any(),
 		orderProcessingNumber,
 	).Return(
-		accrual_system.OrderInfo{
+		accrual.OrderInfo{
 			Number:  orderProcessingNumber,
 			Status:  "PROCESSING",
 			Accrual: nil,
@@ -390,10 +390,10 @@ func TestAppUsecase_processOrder(t *testing.T) {
 		gomock.Any(),
 		orderProcessedNumber,
 	).Return(
-		accrual_system.OrderInfo{
+		accrual.OrderInfo{
 			Number:  orderProcessedNumber,
 			Status:  "PROCESSED",
-			Accrual: &accrual,
+			Accrual: &accrualSum,
 		},
 		nil,
 	).AnyTimes()
