@@ -21,6 +21,14 @@ func (ah *AppHandler) AuthMiddleware(h http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+			ctx := context.WithValue(r.Context(), UserIDKey, userID)
+
+			ctxLogger := logger.GetContextLogger(r.Context())
+			ctxLogger = ctxLogger.With(zap.Uint(string(UserIDKey), userID))
+			ctx = context.WithValue(ctx, logger.LoggerKey, ctxLogger)
+
+			h.ServeHTTP(w, r.WithContext(ctx))
+			return
 		}
 
 		cookie, err := r.Cookie(AccessTokenKey)
