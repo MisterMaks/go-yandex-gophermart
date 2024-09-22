@@ -15,10 +15,13 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
-	RunAddress = "127.0.0.1:8080"
+	RunAddress = ":8080"
 	LogLevel   = "INFO"
 
 	ConfigKey string = "config"
@@ -161,10 +164,27 @@ func main() {
 	logger.Log.Info("Server running",
 		zap.String(RunAddressKey, config.RunAddress),
 	)
-	err = http.ListenAndServe(config.RunAddress, r)
-	if err != nil {
-		logger.Log.Fatal("Failed to start server",
-			zap.Error(err),
-		)
+	go func() {
+		err = http.ListenAndServe(config.RunAddress, r)
+
+		if err != nil {
+			logger.Log.Fatal("Failed to start server",
+				zap.Error(err),
+			)
+		}
+	}()
+
+	exitChan := make(chan os.Signal, 1)
+	signal.Notify(exitChan, syscall.SIGINT, syscall.SIGTERM)
+
+Loop:
+	for {
+		select {
+		case exitSyg := <-exitChan:
+			logger.Log.Info("terminating: via signal", zap.Any("signal", exitSyg))
+			break Loop
+		}
 	}
+
+	return
 }
