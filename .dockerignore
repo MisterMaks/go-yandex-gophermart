@@ -1,0 +1,7 @@
+bin/*
+.git
+.DS_Store
+.gitignore
+
+cover.out
+local_db.txt
