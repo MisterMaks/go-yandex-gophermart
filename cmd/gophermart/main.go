@@ -177,14 +177,8 @@ func main() {
 	exitChan := make(chan os.Signal, 1)
 	signal.Notify(exitChan, syscall.SIGINT, syscall.SIGTERM)
 
-Loop:
-	for {
-		select {
-		case exitSyg := <-exitChan:
-			logger.Log.Info("terminating: via signal", zap.Any("signal", exitSyg))
-			break Loop
-		}
+	for exitSyg := range exitChan {
+		logger.Log.Info("terminating: via signal", zap.Any("signal", exitSyg))
+		break
 	}
-
-	return
 }
