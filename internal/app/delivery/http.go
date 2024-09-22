@@ -22,6 +22,8 @@ const (
 	RequestBodyKey                   = "request_body"
 	AccessTokenKey                   = "accessToken"
 	UserIDKey          UserIDKeyType = "user_id"
+	AuthorizationKey                 = "Authorization"
+	BearerKey                        = "Bearer "
 )
 
 func getContextUserID(ctx context.Context) (uint, error) {
@@ -115,6 +117,8 @@ func (ah *AppHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set(AuthorizationKey, BearerKey+accessToken)
+
 	http.SetCookie(w, &http.Cookie{Name: AccessTokenKey, Value: accessToken, Path: "/"})
 }
 
@@ -175,6 +179,8 @@ func (ah *AppHandler) Login(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	w.Header().Set(AuthorizationKey, BearerKey+accessToken)
 
 	http.SetCookie(w, &http.Cookie{Name: AccessTokenKey, Value: accessToken, Path: "/"})
 }
