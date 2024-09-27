@@ -45,7 +45,9 @@ type AppUsecase struct {
 
 	AccrualSystemClient AccrualSystemClientInterface
 
-	passwordKey string
+	minLoginLen    uint
+	passwordKey    string
+	minPasswordLen uint
 
 	tokenKey string
 	tokenExp time.Duration
@@ -60,7 +62,9 @@ type AppUsecase struct {
 func NewAppUsecase(
 	appRepo AppRepoInterface,
 	accrualSystemClient AccrualSystemClientInterface,
+	minLoginLen uint,
 	passwordKey string,
+	minPasswordLen uint,
 	tokenKey string,
 	tokenExp time.Duration,
 	processOrderChanSize uint,
@@ -81,7 +85,9 @@ func NewAppUsecase(
 
 		AccrualSystemClient: accrualSystemClient,
 
-		passwordKey: passwordKey,
+		minLoginLen:    minLoginLen,
+		passwordKey:    passwordKey,
+		minPasswordLen: minPasswordLen,
 
 		tokenKey: tokenKey,
 		tokenExp: tokenExp,
@@ -211,11 +217,17 @@ func (au *AppUsecase) hashPassword(password string) string {
 }
 
 func (au *AppUsecase) checkLogin(login string) (bool, error) {
+	if uint(len(login)) < au.minLoginLen {
+		return false, nil
+	}
 	okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, login)
 	return !okInvalidSymbols, err
 }
 
 func (au *AppUsecase) checkPassword(password string) (bool, error) {
+	if uint(len(password)) < au.minLoginLen {
+		return false, nil
+	}
 	okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, password)
 	return !okInvalidSymbols, err
 }

@@ -25,7 +25,9 @@ const (
 	RunAddress = "localhost:8080"
 	LogLevel   = "INFO"
 
-	PasswordKey = "supersecretkey"
+	MinLoginLen    uint = 6
+	PasswordKey         = "supersecretkey"
+	MinPasswordLen uint = 6
 
 	TokenKey        = "supersecretkey"
 	TokenExpiration = 15 * time.Minute
@@ -150,7 +152,9 @@ func main() {
 	appUsecase, err := usecase.NewAppUsecase(
 		appRepo,
 		accrualSystemClient,
+		config.MinLoginLen,
 		config.PasswordKey,
+		config.MinPasswordLen,
 		config.TokenKey,
 		config.TokenExpiration,
 		config.ProcessOrderChanSize,

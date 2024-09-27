@@ -12,7 +12,9 @@ type Config struct {
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 
 	LogLevel                          string        `env:"LOG_LEVEL"`
+	MinLoginLen                       uint          `env:"MIN_LOGIN_LEN"`
 	PasswordKey                       string        `env:"PASSWORD_KEY"`
+	MinPasswordLen                    uint          `env:"MIN_PASSWORD_LEN"`
 	TokenKey                          string        `env:"TOKEN_KEY"`
 	TokenExpiration                   time.Duration `env:"TOKEN_EXPIRATION"`
 	ProcessOrderChanSize              uint          `env:"PROCESS_ORDER_CHAN_SIZE"`
@@ -29,7 +31,9 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&config.AccrualSystemAddress, "r", "", "Accrual system address")
 
 	flag.StringVar(&config.LogLevel, "l", "", "Log level")
+	flag.UintVar(&config.MinLoginLen, "mll", MinLoginLen, "Minimum login length")
 	flag.StringVar(&config.PasswordKey, "pk", "", "Password key")
+	flag.UintVar(&config.MinPasswordLen, "mpl", MinPasswordLen, "Minimum password length")
 	flag.StringVar(&config.TokenKey, "tk", "", "Token key")
 	flag.DurationVar(&config.TokenExpiration, "te", TokenExpiration, "Token expiration")
 	flag.UintVar(&config.ProcessOrderChanSize, "pocs", ProcessOrderChanSize, "Process order chan size")

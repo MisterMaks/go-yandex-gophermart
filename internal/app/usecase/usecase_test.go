@@ -49,7 +49,9 @@ func TestNewAppUsecase(t *testing.T) {
 	}
 
 	type args struct {
+		minLoginLen                       uint
 		passwordKey                       string
+		minPasswordLen                    uint
 		tokenKey                          string
 		tokenExp                          time.Duration
 		processOrderChanSize              uint
@@ -70,7 +72,9 @@ func TestNewAppUsecase(t *testing.T) {
 		{
 			name: "valid data",
 			args: args{
+				minLoginLen:                       6,
 				passwordKey:                       passwordKey,
+				minPasswordLen:                    6,
 				tokenKey:                          tokenKey,
 				tokenExp:                          tokenExp,
 				processOrderChanSize:              processOrderChanSize,
@@ -85,7 +89,9 @@ func TestNewAppUsecase(t *testing.T) {
 		{
 			name: "empty password key",
 			args: args{
+				minLoginLen:                       6,
 				passwordKey:                       "",
+				minPasswordLen:                    6,
 				tokenKey:                          tokenKey,
 				tokenExp:                          tokenExp,
 				processOrderChanSize:              processOrderChanSize,
@@ -100,7 +106,9 @@ func TestNewAppUsecase(t *testing.T) {
 		{
 			name: "empty token key",
 			args: args{
+				minLoginLen:                       6,
 				passwordKey:                       passwordKey,
+				minPasswordLen:                    6,
 				tokenKey:                          "",
 				tokenExp:                          tokenExp,
 				processOrderChanSize:              processOrderChanSize,
@@ -119,7 +127,9 @@ func TestNewAppUsecase(t *testing.T) {
 			au, err := NewAppUsecase(
 				mockARI,
 				mockASCI,
+				tt.args.minLoginLen,
 				tt.args.passwordKey,
+				tt.args.minPasswordLen,
 				tt.args.tokenKey,
 				tt.args.tokenExp,
 				tt.args.processOrderChanSize,
