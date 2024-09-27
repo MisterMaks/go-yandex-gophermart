@@ -429,4 +429,6 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 		)
 	}
+
+	logger.Debug("Response body", zap.Any("response_body", withdrawals))
 }

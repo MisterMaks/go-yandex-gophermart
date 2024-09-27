@@ -23,7 +23,7 @@ import (
 
 const (
 	RunAddress = "localhost:8080"
-	LogLevel   = "INFO"
+	LogLevel   = "DEBUG"
 
 	PasswordKey = "supersecretkey"
 
