@@ -31,7 +31,7 @@ const (
 	TokenExpiration = 15 * time.Minute
 
 	ProcessOrderChanSize    = 256
-	ProcessOrderWaitingTime = 0
+	ProcessOrderWaitingTime = time.Nanosecond
 
 	UpdateExistedNewOrdersWaitingTime = 2 * time.Minute
 
