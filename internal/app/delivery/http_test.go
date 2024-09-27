@@ -341,7 +341,7 @@ func TestAppHandler_CreateOrder(t *testing.T) {
 				ctx:         context.WithValue(context.Background(), UserIDKey, userID),
 			},
 			want: want{
-				statusCode: http.StatusCreated,
+				statusCode: http.StatusAccepted,
 			},
 		},
 		{

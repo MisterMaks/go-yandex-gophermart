@@ -241,7 +241,7 @@ func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (ah *AppHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
