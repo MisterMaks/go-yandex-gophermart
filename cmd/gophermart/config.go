@@ -31,12 +31,12 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&config.LogLevel, "l", "", "Log level")
 	flag.StringVar(&config.PasswordKey, "pk", "", "Password key")
 	flag.StringVar(&config.TokenKey, "tk", "", "Token key")
-	flag.DurationVar(&config.TokenExpiration, "te", 15*time.Minute, "Token expiration")
-	flag.UintVar(&config.ProcessOrderChanSize, "pocs", 256, "Process order chan size")
-	flag.DurationVar(&config.ProcessOrderWaitingTime, "powt", 2*time.Minute, "Process order waiting time")
-	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", 2*time.Minute, "Update existed new orders waiting Time")
+	flag.DurationVar(&config.TokenExpiration, "te", TokenExpiration, "Token expiration")
+	flag.UintVar(&config.ProcessOrderChanSize, "pocs", ProcessOrderChanSize, "Process order chan size")
+	flag.DurationVar(&config.ProcessOrderWaitingTime, "powt", ProcessOrderWaitingTime, "Process order waiting time")
+	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", UpdateExistedNewOrdersWaitingTime, "Update existed new orders waiting Time")
 
-	flag.DurationVar(&config.AccrualSystemRequestTimeout, "asrt", 2*time.Second, "Accrual system request timeout")
+	flag.DurationVar(&config.AccrualSystemRequestTimeout, "asrt", AccrualSystemRequestTimeout, "Accrual system request timeout")
 
 	flag.Parse()
 
@@ -50,6 +50,12 @@ func NewConfig() (*Config, error) {
 	}
 	if config.LogLevel == "" {
 		config.LogLevel = LogLevel
+	}
+	if config.PasswordKey == "" {
+		config.PasswordKey = PasswordKey
+	}
+	if config.TokenKey == "" {
+		config.TokenKey = TokenKey
 	}
 
 	return config, nil

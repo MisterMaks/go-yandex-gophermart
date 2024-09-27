@@ -18,15 +18,28 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 const (
 	RunAddress = "localhost:8080"
 	LogLevel   = "INFO"
 
-	ConfigKey string = "config"
+	PasswordKey = "supersecretkey"
 
-	RunAddressKey string = "run_address"
+	TokenKey        = "supersecretkey"
+	TokenExpiration = 15 * time.Minute
+
+	ProcessOrderChanSize    = 256
+	ProcessOrderWaitingTime = 2 * time.Minute
+
+	UpdateExistedNewOrdersWaitingTime = 2 * time.Minute
+
+	AccrualSystemRequestTimeout = 2 * time.Second
+
+	ConfigKey = "config"
+
+	RunAddressKey = "run_address"
 )
 
 func migrate(dsn string) error {
