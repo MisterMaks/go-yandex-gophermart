@@ -145,31 +145,6 @@ func (au *AppUsecase) processOrders(ctx context.Context, orders []*app.Order) {
 	}
 }
 
-func (au *AppUsecase) deferredWorker() {
-	logger := loggerInternal.Log
-Loop:
-	for {
-		select {
-		case <-au.processOrdersCtx.Done():
-			return
-		case <-au.updateExistedNewOrdersTicker.C:
-			iterationID := uuid.New().String()
-			logger = logger.With(
-				zap.String("update_existed_new_orders_iteration_id", iterationID),
-			)
-			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, logger)
-
-			logger.Info("Update existed new orders")
-
-			orders, err := au.AppRepo.GetNewOrders(ctx)
-			if err != nil {
-				continue Loop
-			}
-			au.processOrders(ctx, orders)
-		}
-	}
-}
-
 func (au *AppUsecase) worker() {
 	logger := loggerInternal.Log
 
@@ -195,6 +170,31 @@ func (au *AppUsecase) worker() {
 
 			au.processOrders(ctx, orders)
 			orders = orders[:0]
+		}
+	}
+}
+
+func (au *AppUsecase) deferredWorker() {
+	logger := loggerInternal.Log
+Loop:
+	for {
+		select {
+		case <-au.processOrdersCtx.Done():
+			return
+		case <-au.updateExistedNewOrdersTicker.C:
+			iterationID := uuid.New().String()
+			logger = logger.With(
+				zap.String("update_existed_new_orders_iteration_id", iterationID),
+			)
+			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, logger)
+
+			logger.Info("Update existed new orders")
+
+			orders, err := au.AppRepo.GetNewOrders(ctx)
+			if err != nil {
+				continue Loop
+			}
+			au.processOrders(ctx, orders)
 		}
 	}
 }
