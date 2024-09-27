@@ -93,8 +93,8 @@ func NewAppUsecase(
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.processOrders()
-	go appUsecase.updateExistedNewOrders()
+	go appUsecase.worker()
+	go appUsecase.deferredWorker()
 
 	return appUsecase, nil
 }
@@ -104,7 +104,48 @@ func (au *AppUsecase) Close() {
 	close(au.processOrdersChan)
 }
 
-func (au *AppUsecase) updateExistedNewOrders() {
+func (au *AppUsecase) processOrders(ctx context.Context, orders []*app.Order) {
+	logger := loggerInternal.GetContextLogger(ctx)
+	for _, order := range orders {
+		orderInfo, err := au.AccrualSystemClient.GetOrderInfo(ctx, order.Number)
+
+		if err != nil {
+			logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
+			switch err {
+			case accrual.ErrTooManyRequests:
+				break
+			case accrual.ErrInternalServerError:
+				break
+			case accrual.ErrOrderNotRegistered:
+				continue
+			default:
+				continue
+			}
+		}
+
+		switch orderInfo.Status {
+		case "REGISTERED":
+			continue
+		case "INVALID":
+			order.Status = "INVALID"
+		case "PROCESSING":
+			order.Status = "PROCESSING"
+		case "PROCESSED":
+			order.Status = "PROCESSED"
+			order.Accrual = orderInfo.Accrual
+		default:
+			logger.Error("Unknown order status", zap.Any("order", order), zap.Any("order_info", orderInfo))
+			continue
+		}
+
+		err = au.AppRepo.UpdateOrder(ctx, order)
+		if err != nil {
+			continue
+		}
+	}
+}
+
+func (au *AppUsecase) deferredWorker() {
 	logger := loggerInternal.Log
 Loop:
 	for {
@@ -124,18 +165,12 @@ Loop:
 			if err != nil {
 				continue Loop
 			}
-			for _, order := range orders {
-				select {
-				case <-au.processOrdersCtx.Done():
-					return
-				case au.processOrdersChan <- order:
-				}
-			}
+			au.processOrders(ctx, orders)
 		}
 	}
 }
 
-func (au *AppUsecase) processOrders() {
+func (au *AppUsecase) worker() {
 	logger := loggerInternal.Log
 
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
@@ -158,48 +193,10 @@ func (au *AppUsecase) processOrders() {
 			)
 			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
 
-		Loop:
-			for _, order := range orders {
-				orderInfo, err := au.AccrualSystemClient.GetOrderInfo(ctx, order.Number)
-
-				if err != nil {
-					logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
-					switch err {
-					case accrual.ErrTooManyRequests:
-						break Loop
-					case accrual.ErrInternalServerError:
-						break Loop
-					case accrual.ErrOrderNotRegistered:
-						continue Loop
-					default:
-						continue Loop
-					}
-				}
-
-				switch orderInfo.Status {
-				case "REGISTERED":
-					continue Loop
-				case "INVALID":
-					order.Status = "INVALID"
-				case "PROCESSING":
-					order.Status = "PROCESSING"
-				case "PROCESSED":
-					order.Status = "PROCESSED"
-					order.Accrual = orderInfo.Accrual
-				default:
-					logger.Error("Unknown order status", zap.Any("order", order), zap.Any("order_info", orderInfo))
-					continue Loop
-				}
-
-				err = au.AppRepo.UpdateOrder(ctx, order)
-				if err != nil {
-					continue
-				}
-			}
+			au.processOrders(ctx, orders)
 			orders = orders[:0]
 		}
 	}
-
 }
 
 func (au *AppUsecase) hashPassword(password string) string {
