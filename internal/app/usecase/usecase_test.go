@@ -413,7 +413,7 @@ func TestAppUsecase_processOrder(t *testing.T) {
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.processOrder()
+	go appUsecase.processOrders()
 
 	ticker := time.NewTicker(time.Second)
 

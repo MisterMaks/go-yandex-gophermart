@@ -93,7 +93,7 @@ func NewAppUsecase(
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.processOrder()
+	go appUsecase.processOrders()
 	go appUsecase.updateExistedNewOrders()
 
 	return appUsecase, nil
@@ -113,10 +113,12 @@ Loop:
 			return
 		case <-au.updateExistedNewOrdersTicker.C:
 			iterationID := uuid.New().String()
-			ctxLogger := logger.With(
+			logger = logger.With(
 				zap.String("update_existed_new_orders_iteration_id", iterationID),
 			)
-			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
+			ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, logger)
+
+			logger.Info("Update existed new orders")
 
 			orders, err := au.AppRepo.GetNewOrders(ctx)
 			if err != nil {
@@ -133,7 +135,7 @@ Loop:
 	}
 }
 
-func (au *AppUsecase) processOrder() {
+func (au *AppUsecase) processOrders() {
 	logger := loggerInternal.Log
 
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
@@ -147,6 +149,8 @@ func (au *AppUsecase) processOrder() {
 			if len(orders) == 0 {
 				continue
 			}
+
+			logger.Info("Process orders")
 
 			iterationID := uuid.New().String()
 			ctxLogger := logger.With(
