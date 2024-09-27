@@ -8,17 +8,18 @@ import (
 )
 
 const (
-	CreateUserQuery     = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
-	CreateBalanceQuery  = `INSERT INTO balance (user_id) VALUES ($1);`
-	GetUserQuery        = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
-	CreateOrderQuery    = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) ON CONFLICT (user_id, number) DO NOTHING RETURNING id, status, uploaded_at;`
-	UpdateOrderQuery    = `UPDATE "order" SET status = $1, accrual = $2 WHERE id = $3;`
-	GetOrdersQuery      = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = $1;`
-	GetNewOrdersQuery   = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`
-	GetBalanceQuery     = `SELECT id, current, withdrawn FROM balance WHERE user_id = $1;`
-	UpdateBalanceQuery  = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
-	CreateWithdrawQuery = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) ON CONFLICT (user_id, order_number) DO NOTHING RETURNING id, processed_at;`
-	GetWithdrawalsQuery = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1;`
+	CreateUserQuery      = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
+	CreateBalanceQuery   = `INSERT INTO balance (user_id) VALUES ($1);`
+	GetUserQuery         = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
+	CreateOrderQuery     = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) ON CONFLICT (user_id, number) DO NOTHING RETURNING id, status, uploaded_at;`
+	UpdateOrderQuery     = `UPDATE "order" SET status = $1, accrual = $2 WHERE id = $3;`
+	GetOrdersQuery       = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = $1;`
+	GetNewOrdersQuery    = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`
+	GetBalanceQuery      = `SELECT id, current, withdrawn FROM balance WHERE user_id = $1;`
+	AddBalanceQuery      = `UPDATE balance SET current = current + $1 WHERE user_id = $2;`
+	WithdrawBalanceQuery = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
+	CreateWithdrawQuery  = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) ON CONFLICT (user_id, order_number) DO NOTHING RETURNING id, processed_at;`
+	GetWithdrawalsQuery  = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1;`
 )
 
 type AppRepo struct {
@@ -117,15 +118,42 @@ func (ar *AppRepo) CreateOrder(ctx context.Context, userID uint, number string) 
 }
 
 func (ar *AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
-	_, err := ar.db.ExecContext(
+	// запускаем транзакцию
+	tx, err := ar.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	// в случае неуспешного коммита все изменения транзакции будут отменены
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(
 		ctx,
 		UpdateOrderQuery,
 		order.Status,
 		order.Accrual,
 		order.ID,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	_, err = tx.ExecContext(
+		ctx,
+		AddBalanceQuery,
+		order.Accrual,
+		order.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ar *AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) {
@@ -260,7 +288,7 @@ func (ar *AppRepo) CreateWithdrawal(ctx context.Context, userID uint, orderNumbe
 	// в случае неуспешного коммита все изменения транзакции будут отменены
 	defer tx.Rollback()
 
-	_, err = tx.ExecContext(ctx, UpdateBalanceQuery, sum, sum, userID)
+	_, err = tx.ExecContext(ctx, WithdrawBalanceQuery, sum, sum, userID)
 	if err != nil {
 		return nil, err
 	}
