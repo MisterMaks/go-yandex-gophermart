@@ -25,9 +25,9 @@ const (
 	RunAddress = "localhost:8080"
 	LogLevel   = "INFO"
 
-	MinLoginLen    uint = 6
+	MinLoginLen    uint = 1
 	PasswordKey         = "supersecretkey"
-	MinPasswordLen uint = 6
+	MinPasswordLen uint = 1
 
 	TokenKey        = "supersecretkey"
 	TokenExpiration = 15 * time.Minute
