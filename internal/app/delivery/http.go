@@ -430,5 +430,9 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 		)
 	}
 
-	logger.Debug("Response body", zap.Any("response_body", withdrawals))
+	logger.Debug("Request/Response data",
+		zap.Any("response_body", withdrawals),
+		zap.Any("request_headers", r.Header),
+		zap.Any("response_headers", w.Header()),
+	)
 }
