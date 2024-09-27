@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	RunAddress = ":8080"
+	RunAddress = "localhost:8080"
 	LogLevel   = "INFO"
 
 	ConfigKey string = "config"
