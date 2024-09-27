@@ -392,7 +392,7 @@ func (ah *AppHandler) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 	logger := loggerInternal.GetContextLogger(r.Context())
 
-	logger.Info("Getting balance")
+	logger.Info("Getting withdrawals")
 
 	userID, err := getContextUserID(r.Context())
 	if err != nil {
