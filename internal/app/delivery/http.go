@@ -421,6 +421,7 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(ContentTypeKey, ApplicationJSONKey)
+	w.WriteHeader(http.StatusOK)
 
 	enc := json.NewEncoder(w)
 	err = enc.Encode(withdrawals)
@@ -429,10 +430,4 @@ func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 		)
 	}
-
-	logger.Debug("Request/Response data",
-		zap.Any("response_body", withdrawals),
-		zap.Any("request_headers", r.Header),
-		zap.Any("response_headers", w.Header()),
-	)
 }
