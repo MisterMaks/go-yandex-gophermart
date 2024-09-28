@@ -412,7 +412,7 @@ func (au *AppUsecase) CreateWithdrawal(ctx context.Context, userID uint, orderNu
 		switch {
 		case pgErr.Code == "23514" && pgErr.Message == "new row for relation \"balance\" violates check constraint \"balance_current_check\"":
 			return nil, app.ErrInsufficientFunds
-		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":
+		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"withdrawal_order_number_key\"":
 			return nil, app.ErrOrderUploadedByAnotherUser
 		default:
 			return nil, err

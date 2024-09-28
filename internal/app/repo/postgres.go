@@ -19,7 +19,7 @@ const (
 	AddBalanceQuery      = `UPDATE balance SET current = current + $1 WHERE user_id = $2;`
 	WithdrawBalanceQuery = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
 	CreateWithdrawQuery  = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) ON CONFLICT (user_id, order_number) DO NOTHING RETURNING id, processed_at;`
-	GetWithdrawalsQuery  = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1;`
+	GetWithdrawalsQuery  = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1 ORDER BY processed_at DESC;`
 )
 
 type AppRepo struct {

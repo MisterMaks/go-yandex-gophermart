@@ -1271,7 +1271,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 			nil,
 			&pgconn.PgError{
 				Code:    "23505",
-				Message: "duplicate key value violates unique constraint \"order_number_key\"",
+				Message: "duplicate key value violates unique constraint \"withdrawal_order_number_key\"",
 			},
 		).AnyTimes()
 	m.EXPECT().CreateWithdrawal(gomock.Any(), userID, number, bigSum).

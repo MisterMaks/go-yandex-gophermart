@@ -112,15 +112,15 @@ func TestAppRepo_CreateUser(t *testing.T) {
 	require.Error(t, err)
 	var pgErr *pgconn.PgError
 	assert.True(t, errors.As(err, &pgErr))
-	assert.Equal(t, pgErr.Code, "23505")
-	assert.Equal(t, pgErr.Message, "duplicate key value violates unique constraint \"user_login_key\"")
+	assert.Equal(t, "23505", pgErr.Code)
+	assert.Equal(t, "duplicate key value violates unique constraint \"user_login_key\"", pgErr.Message)
 
 	// invalid symbols
 	_, err = appRepo.CreateUser(ctx, "$$$$", "!!!!")
 	require.Error(t, err)
 	assert.True(t, errors.As(err, &pgErr))
-	assert.Equal(t, pgErr.Code, "23514")
-	assert.Equal(t, pgErr.Message, "new row for relation \"user\" violates check constraint \"user_login_check\"")
+	assert.Equal(t, "23514", pgErr.Code)
+	assert.Equal(t, "new row for relation \"user\" violates check constraint \"user_login_check\"", pgErr.Message)
 }
 
 func TestAppRepo_AuthUser(t *testing.T) {
@@ -164,6 +164,10 @@ func TestAppRepo_CreateOrder(t *testing.T) {
 	user, err := appRepo.CreateUser(ctx, login, passwordHash)
 	require.NoError(t, err)
 
+	actualOrders, err := appRepo.GetOrders(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Order{}, actualOrders)
+
 	// valid data
 	number := "12345"
 	expectedStatus := "NEW"
@@ -175,7 +179,7 @@ func TestAppRepo_CreateOrder(t *testing.T) {
 	assert.Equal(t, expectedStatus, order.Status)
 	assert.Equal(t, expectedAccrual, order.Accrual)
 
-	actualOrders, err := appRepo.GetOrders(ctx, user.ID)
+	actualOrders, err = appRepo.GetOrders(ctx, user.ID)
 	require.NoError(t, err)
 	assert.Equal(t, []*app.Order{order}, actualOrders)
 
@@ -201,8 +205,8 @@ func TestAppRepo_CreateOrder(t *testing.T) {
 	require.Error(t, err)
 	var pgErr *pgconn.PgError
 	require.True(t, errors.As(err, &pgErr))
-	assert.Equal(t, pgErr.Code, "23505")
-	assert.Equal(t, pgErr.Message, "duplicate key value violates unique constraint \"order_number_key\"")
+	assert.Equal(t, "23505", pgErr.Code)
+	assert.Equal(t, "duplicate key value violates unique constraint \"order_number_key\"", pgErr.Message)
 }
 
 func TestAppRepo_UpdateOrder(t *testing.T) {
@@ -261,11 +265,15 @@ func TestAppRepo_GetOrders(t *testing.T) {
 	user, err := appRepo.CreateUser(ctx, login, passwordHash)
 	require.NoError(t, err)
 
+	actualOrders, err := appRepo.GetOrders(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Order{}, actualOrders)
+
 	number := "12345"
 	order, err := appRepo.CreateOrder(ctx, user.ID, number)
 	require.NoError(t, err)
 
-	actualOrders, err := appRepo.GetOrders(ctx, user.ID)
+	actualOrders, err = appRepo.GetOrders(ctx, user.ID)
 	require.NoError(t, err)
 	assert.Equal(t, []*app.Order{order}, actualOrders)
 
@@ -370,4 +378,144 @@ func TestAppRepo_GetBalance(t *testing.T) {
 	balance, err = appRepo.GetBalance(ctx, user.ID)
 	require.NoError(t, err)
 	assert.Equal(t, accrual+accrual2, balance.Current)
+}
+
+func TestAppRepo_CreateWithdrawal(t *testing.T) {
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
+
+	appRepo, err := NewAppRepo(te.DB)
+	require.NoError(t, err, "Failed to run NewAppRepo()")
+
+	ctx := context.Background()
+
+	login := "login"
+	passwordHash := "password_hash"
+	user, err := appRepo.CreateUser(ctx, login, passwordHash)
+	require.NoError(t, err)
+
+	withdrawals, err := appRepo.GetWithdrawals(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Withdrawal{}, withdrawals)
+
+	balance, err := appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, float64(0), balance.Current)
+
+	orderNumber := "12345"
+	sum := float64(100)
+
+	// There are insufficient funds in the account
+	_, err = appRepo.CreateWithdrawal(ctx, user.ID, orderNumber, sum)
+	require.Error(t, err)
+	var pgErr *pgconn.PgError
+	assert.True(t, errors.As(err, &pgErr))
+	assert.Equal(t, "23514", pgErr.Code)
+	assert.Equal(t, "new row for relation \"balance\" violates check constraint \"balance_current_check\"", pgErr.Message)
+
+	// Valid data
+	order, err := appRepo.CreateOrder(ctx, user.ID, "67890")
+	require.NoError(t, err)
+
+	order.Status = "PROCESSED"
+	accrual := float64(200)
+	order.Accrual = &accrual
+
+	err = appRepo.UpdateOrder(ctx, order)
+	require.NoError(t, err)
+
+	balance, err = appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, accrual, balance.Current)
+
+	withdrawal, err := appRepo.CreateWithdrawal(ctx, user.ID, orderNumber, sum)
+	require.NoError(t, err)
+	assert.Equal(t, orderNumber, withdrawal.OrderNumber)
+	assert.Equal(t, sum, withdrawal.Sum)
+
+	balance, err = appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, accrual-sum, balance.Current)
+
+	_, err = appRepo.CreateWithdrawal(ctx, user.ID, orderNumber, sum)
+	assert.ErrorIs(t, err, sql.ErrNoRows)
+
+	balance, err = appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, accrual-sum, balance.Current)
+
+	// Order number has already been uploaded by another user
+	login2 := "login_2"
+	passwordHash2 := "password_hash_2"
+	user2, err := appRepo.CreateUser(ctx, login2, passwordHash2)
+	require.NoError(t, err)
+
+	order, err = appRepo.CreateOrder(ctx, user2.ID, "11111")
+	require.NoError(t, err)
+
+	order.Status = "PROCESSED"
+	accrual = float64(200)
+	order.Accrual = &accrual
+
+	err = appRepo.UpdateOrder(ctx, order)
+	require.NoError(t, err)
+
+	_, err = appRepo.CreateWithdrawal(ctx, user2.ID, orderNumber, sum)
+	require.True(t, errors.As(err, &pgErr))
+	assert.Equal(t, "23505", pgErr.Code)
+	assert.Equal(t, "duplicate key value violates unique constraint \"withdrawal_order_number_key\"", pgErr.Message)
+
+	balance, err = appRepo.GetBalance(ctx, user2.ID)
+	require.NoError(t, err)
+	assert.Equal(t, accrual, balance.Current)
+}
+
+func TestAppRepo_GetWithdrawals(t *testing.T) {
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
+
+	appRepo, err := NewAppRepo(te.DB)
+	require.NoError(t, err, "Failed to run NewAppRepo()")
+
+	ctx := context.Background()
+
+	login := "login"
+	passwordHash := "password_hash"
+	user, err := appRepo.CreateUser(ctx, login, passwordHash)
+	require.NoError(t, err)
+
+	// Empty
+	withdrawals, err := appRepo.GetWithdrawals(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Withdrawal{}, withdrawals)
+
+	// 1 withdrawal
+	order, err := appRepo.CreateOrder(ctx, user.ID, "11111")
+	require.NoError(t, err)
+
+	order.Status = "PROCESSED"
+	accrual := float64(200)
+	order.Accrual = &accrual
+
+	err = appRepo.UpdateOrder(ctx, order)
+	require.NoError(t, err)
+
+	orderNumber := "12345"
+	sum := float64(100)
+	withdrawal, err := appRepo.CreateWithdrawal(ctx, user.ID, orderNumber, sum)
+	require.NoError(t, err)
+
+	withdrawals, err = appRepo.GetWithdrawals(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Withdrawal{withdrawal}, withdrawals)
+
+	// 2 withdrawals
+	orderNumber2 := "67890"
+	sum2 := float64(100)
+	withdrawal2, err := appRepo.CreateWithdrawal(ctx, user.ID, orderNumber2, sum2)
+	require.NoError(t, err)
+
+	withdrawals, err = appRepo.GetWithdrawals(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Withdrawal{withdrawal2, withdrawal}, withdrawals)
 }
