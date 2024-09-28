@@ -1,3 +1,4 @@
+[![Coverage](https://img.shields.io/badge/-Coverage-black)](https://mistermaks.github.io/go-yandex-gophermart/)
 # go-musthave-diploma-tpl
 
 Шаблон репозитория для индивидуального дипломного проекта курса «Go-разработчик»
