@@ -22,6 +22,6 @@ vendor/
 .idea
 .vscode
 
-local_db.txt
+local_envs.yaml
 
 bin/gophermart
