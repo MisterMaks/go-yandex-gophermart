@@ -284,3 +284,41 @@ func TestAppRepo_GetOrders(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []*app.Order{order2, order}, actualOrders)
 }
+
+func TestAppRepo_GetNewOrders(t *testing.T) {
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
+
+	appRepo, err := NewAppRepo(te.DB)
+	require.NoError(t, err, "Failed to run NewAppRepo()")
+
+	ctx := context.Background()
+
+	login := "login"
+	passwordHash := "password_hash"
+	user, err := appRepo.CreateUser(ctx, login, passwordHash)
+	require.NoError(t, err)
+
+	number := "12345"
+	order, err := appRepo.CreateOrder(ctx, user.ID, number)
+	require.NoError(t, err)
+
+	number2 := "67890"
+	order2, err := appRepo.CreateOrder(ctx, user.ID, number2)
+	require.NoError(t, err)
+
+	number3 := "11111"
+	order3, err := appRepo.CreateOrder(ctx, user.ID, number3)
+	require.NoError(t, err)
+
+	order3.Status = "PROCESSED"
+	accrual := float64(100)
+	order3.Accrual = &accrual
+
+	err = appRepo.UpdateOrder(ctx, order3)
+	require.NoError(t, err)
+
+	actualOrders, err := appRepo.GetNewOrders(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Order{order, order2}, actualOrders)
+}
