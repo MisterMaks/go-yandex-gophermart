@@ -4,4 +4,4 @@ bin/*
 .gitignore
 
 cover.out
-local_envs.yaml
+local_envs.yml
