@@ -27,8 +27,13 @@ dcb:
 
 .PHONY: test
 test:
-	@echo "-- testing"
+	@echo "-- testing \n-- env 'TEST_DATABASE_URI' required for integration tests"
 	go test ./... -coverprofile cover.out
+
+.PHONY: unit_test
+unit_test:
+	@echo "-- unit testing"
+	go test ./... -short -coverprofile cover.out
 
 .PHONY: cover
 cover:

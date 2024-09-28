@@ -5,31 +5,23 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"os"
 	"testing"
 )
 
-var DSN = os.Getenv("TEST_DSN")
+var DSN = os.Getenv("TEST_DATABASE_URI")
 
 func upMigrations(dsn string) error {
 	db, err := goose.OpenDBWithDriver("postgres", dsn)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Log.Fatal("Failed to close DB",
-				zap.Error(err),
-			)
-		}
-	}()
+	defer db.Close()
 	ctx := context.Background()
 	return goose.RunContext(ctx, "up", db, "../../../migrations/")
 }
@@ -39,13 +31,7 @@ func downMigrations(dsn string) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Log.Fatal("Failed to close DB",
-				zap.Error(err),
-			)
-		}
-	}()
+	defer db.Close()
 	ctx := context.Background()
 	return goose.RunContext(ctx, "down", db, "../../../migrations/")
 }
@@ -57,38 +43,55 @@ func connectPostgres(dsn string) (*sql.DB, error) {
 	}
 	err = db.Ping()
 	if err != nil {
-		logger.Log.Error("Failed to ping DB Postgres",
-			zap.Error(err),
-		)
+		return nil, err
 	}
 	return db, nil
 }
 
-func TestNewAppRepo(t *testing.T) {
-	db, err := connectPostgres(DSN)
-	require.NoError(t, err, "Failed to connect to Postgres")
-	defer db.Close()
+func newTestEnvironment(dsn string, t *testing.T) *TestEnvironment {
+	if testing.Short() {
+		t.Skip()
+	}
 
-	err = upMigrations(DSN)
+	err := upMigrations(dsn)
 	require.NoError(t, err, "Failed to apply migrations")
 
-	_, err = NewAppRepo(db)
-	assert.NoError(t, err, "Failed to run NewAppRepo()")
+	db, err := connectPostgres(DSN)
+	require.NoError(t, err, "Failed to connect to Postgres")
 
-	err = downMigrations(DSN)
-	require.NoError(t, err, "Failed to roll back migrations")
+	return &TestEnvironment{
+		DSN: dsn,
+		T:   t,
+		DB:  db,
+	}
+}
+
+type TestEnvironment struct {
+	DSN string
+	T   *testing.T
+	DB  *sql.DB
+}
+
+func (te *TestEnvironment) clean() {
+	err := te.DB.Close()
+	assert.NoError(te.T, err, "Failed to close DB")
+	err = downMigrations(te.DSN)
+	require.NoError(te.T, err, "Failed to roll back migrations")
+}
+
+func TestNewAppRepo(t *testing.T) {
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
+
+	_, err := NewAppRepo(te.DB)
+	assert.NoError(t, err, "Failed to run NewAppRepo()")
 }
 
 func TestAppRepo_CreateUser(t *testing.T) {
-	db, err := connectPostgres(DSN)
-	require.NoError(t, err, "Failed to connect to Postgres")
-	defer db.Close()
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
 
-	err = upMigrations(DSN)
-	require.NoError(t, err, "Failed to apply migrations")
-	defer downMigrations(DSN)
-
-	appRepo, err := NewAppRepo(db)
+	appRepo, err := NewAppRepo(te.DB)
 	require.NoError(t, err, "Failed to run NewAppRepo()")
 
 	ctx := context.Background()
@@ -121,15 +124,10 @@ func TestAppRepo_CreateUser(t *testing.T) {
 }
 
 func TestAppRepo_AuthUser(t *testing.T) {
-	db, err := connectPostgres(DSN)
-	require.NoError(t, err, "Failed to connect to Postgres")
-	defer db.Close()
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
 
-	err = upMigrations(DSN)
-	require.NoError(t, err, "Failed to apply migrations")
-	defer downMigrations(DSN)
-
-	appRepo, err := NewAppRepo(db)
+	appRepo, err := NewAppRepo(te.DB)
 	require.NoError(t, err, "Failed to run NewAppRepo()")
 
 	ctx := context.Background()
@@ -153,15 +151,10 @@ func TestAppRepo_AuthUser(t *testing.T) {
 }
 
 func TestAppRepo_CreateOrder(t *testing.T) {
-	db, err := connectPostgres(DSN)
-	require.NoError(t, err, "Failed to connect to Postgres")
-	defer db.Close()
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
 
-	err = upMigrations(DSN)
-	require.NoError(t, err, "Failed to apply migrations")
-	defer downMigrations(DSN)
-
-	appRepo, err := NewAppRepo(db)
+	appRepo, err := NewAppRepo(te.DB)
 	require.NoError(t, err, "Failed to run NewAppRepo()")
 
 	ctx := context.Background()
