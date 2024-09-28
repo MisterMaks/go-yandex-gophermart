@@ -142,7 +142,7 @@ func (ar *AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error {
 		ctx,
 		AddBalanceQuery,
 		order.Accrual,
-		order.ID,
+		order.UserID,
 	)
 	if err != nil {
 		return err
