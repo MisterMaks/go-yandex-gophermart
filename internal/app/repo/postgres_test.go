@@ -204,3 +204,45 @@ func TestAppRepo_CreateOrder(t *testing.T) {
 	assert.Equal(t, pgErr.Code, "23505")
 	assert.Equal(t, pgErr.Message, "duplicate key value violates unique constraint \"order_number_key\"")
 }
+
+func TestAppRepo_UpdateOrder(t *testing.T) {
+	te := newTestEnvironment(DSN, t)
+	defer te.clean()
+
+	appRepo, err := NewAppRepo(te.DB)
+	require.NoError(t, err, "Failed to run NewAppRepo()")
+
+	ctx := context.Background()
+
+	login := "login"
+	passwordHash := "password_hash"
+	user, err := appRepo.CreateUser(ctx, login, passwordHash)
+	require.NoError(t, err)
+
+	number := "12345"
+	order, err := appRepo.CreateOrder(ctx, user.ID, number)
+	require.NoError(t, err)
+
+	balance, err := appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, float64(0), balance.Current)
+
+	actualOrders, err := appRepo.GetOrders(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Order{order}, actualOrders)
+
+	order.Status = "PROCESSED"
+	accrual := float64(100)
+	order.Accrual = &accrual
+
+	err = appRepo.UpdateOrder(ctx, order)
+	require.NoError(t, err)
+
+	actualOrders, err = appRepo.GetOrders(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []*app.Order{order}, actualOrders)
+
+	balance, err = appRepo.GetBalance(ctx, user.ID)
+	require.NoError(t, err)
+	assert.Equal(t, accrual, balance.Current)
+}
