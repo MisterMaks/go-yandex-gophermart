@@ -27,7 +27,7 @@ jobs:
       - name: Run tests
         run: |
           go test ./... -coverprofile cover.out
-          go tool cover -html=cover.out -o=${{github.workspace}}/coverage/cover.html
+          go tool cover -html=cover.out -o=${{github.workspace}}/cover.html
         env:
           TEST_DATABASE_URI: "postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
 
@@ -35,4 +35,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{github.workspace}}/coverage/cover.html
+          publish_dir: ${{github.workspace}}/cover.html
