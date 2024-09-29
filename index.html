@@ -1,0 +1,2519 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>gophermart: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/MisterMaks/go-yandex-gophermart/cmd/gophermart/config.go (0.0%)</option>
+				
+				<option value="file1">github.com/MisterMaks/go-yandex-gophermart/cmd/gophermart/main.go (0.0%)</option>
+				
+				<option value="file2">github.com/MisterMaks/go-yandex-gophermart/cmd/key_generator/config.go (0.0%)</option>
+				
+				<option value="file3">github.com/MisterMaks/go-yandex-gophermart/cmd/key_generator/main.go (0.0%)</option>
+				
+				<option value="file4">github.com/MisterMaks/go-yandex-gophermart/internal/accrual/accrual.go (0.0%)</option>
+				
+				<option value="file5">github.com/MisterMaks/go-yandex-gophermart/internal/app/app.go (100.0%)</option>
+				
+				<option value="file6">github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/http.go (81.4%)</option>
+				
+				<option value="file7">github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/middlewares.go (100.0%)</option>
+				
+				<option value="file8">github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks/http.go (100.0%)</option>
+				
+				<option value="file9">github.com/MisterMaks/go-yandex-gophermart/internal/app/gzip/gzip.go (73.0%)</option>
+				
+				<option value="file10">github.com/MisterMaks/go-yandex-gophermart/internal/app/repo/postgres.go (83.5%)</option>
+				
+				<option value="file11">github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/mocks/usecase.go (72.7%)</option>
+				
+				<option value="file12">github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/usecase.go (86.1%)</option>
+				
+				<option value="file13">github.com/MisterMaks/go-yandex-gophermart/internal/logger/logger.go (15.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "flag"
+        "github.com/caarlos0/env"
+        "time"
+)
+
+type Config struct {
+        RunAddress           string `env:"RUN_ADDRESS"`
+        DatabaseURI          string `env:"DATABASE_URI"`
+        AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+
+        LogLevel                          string        `env:"LOG_LEVEL"`
+        MinLoginLen                       uint          `env:"MIN_LOGIN_LEN"`
+        PasswordKey                       string        `env:"PASSWORD_KEY"`
+        MinPasswordLen                    uint          `env:"MIN_PASSWORD_LEN"`
+        TokenKey                          string        `env:"TOKEN_KEY"`
+        TokenExpiration                   time.Duration `env:"TOKEN_EXPIRATION"`
+        ProcessOrderChanSize              uint          `env:"PROCESS_ORDER_CHAN_SIZE"`
+        ProcessOrderWaitingTime           time.Duration `env:"PROCESS_ORDER_WAITING_TIME"`
+        UpdateExistedNewOrdersWaitingTime time.Duration `env:"UPDATE_EXISTED_ORDERS_WAITING_TIME"`
+        AccrualSystemRequestTimeout       time.Duration `env:"ACCRUAL_SYSTEM_REQUEST_TIMEOUT"`
+}
+
+func NewConfig() (*Config, error) <span class="cov0" title="0">{
+        config := &amp;Config{}
+
+        flag.StringVar(&amp;config.RunAddress, "a", "", "Run address")
+        flag.StringVar(&amp;config.DatabaseURI, "d", "", "Database URI")
+        flag.StringVar(&amp;config.AccrualSystemAddress, "r", "", "Accrual system address")
+
+        flag.StringVar(&amp;config.LogLevel, "l", "", "Log level")
+        flag.UintVar(&amp;config.MinLoginLen, "mll", MinLoginLen, "Minimum login length")
+        flag.StringVar(&amp;config.PasswordKey, "pk", "", "Password key")
+        flag.UintVar(&amp;config.MinPasswordLen, "mpl", MinPasswordLen, "Minimum password length")
+        flag.StringVar(&amp;config.TokenKey, "tk", "", "Token key")
+        flag.DurationVar(&amp;config.TokenExpiration, "te", TokenExpiration, "Token expiration")
+        flag.UintVar(&amp;config.ProcessOrderChanSize, "pocs", ProcessOrderChanSize, "Process order chan size")
+        flag.DurationVar(&amp;config.ProcessOrderWaitingTime, "powt", ProcessOrderWaitingTime, "Process order waiting time")
+        flag.DurationVar(&amp;config.UpdateExistedNewOrdersWaitingTime, "uenowt", UpdateExistedNewOrdersWaitingTime, "Update existed new orders waiting Time")
+
+        flag.DurationVar(&amp;config.AccrualSystemRequestTimeout, "asrt", AccrualSystemRequestTimeout, "Accrual system request timeout")
+
+        flag.Parse()
+
+        err := env.Parse(config)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">if config.RunAddress == "" </span><span class="cov0" title="0">{
+                config.RunAddress = RunAddress
+        }</span>
+        <span class="cov0" title="0">if config.LogLevel == "" </span><span class="cov0" title="0">{
+                config.LogLevel = LogLevel
+        }</span>
+        <span class="cov0" title="0">if config.PasswordKey == "" </span><span class="cov0" title="0">{
+                config.PasswordKey = PasswordKey
+        }</span>
+        <span class="cov0" title="0">if config.TokenKey == "" </span><span class="cov0" title="0">{
+                config.TokenKey = TokenKey
+        }</span>
+
+        <span class="cov0" title="0">return config, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "context"
+        "database/sql"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app/gzip"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app/repo"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "github.com/go-chi/chi/v5"
+        _ "github.com/jackc/pgx/v5/stdlib"
+        "github.com/pressly/goose/v3"
+        "go.uber.org/zap"
+        "log"
+        "net/http"
+        "os"
+        "os/signal"
+        "syscall"
+        "time"
+)
+
+const (
+        RunAddress = "localhost:8080"
+        LogLevel   = "INFO"
+
+        MinLoginLen    uint = 1
+        PasswordKey         = "supersecretkey"
+        MinPasswordLen uint = 1
+
+        TokenKey        = "supersecretkey"
+        TokenExpiration = 15 * time.Minute
+
+        ProcessOrderChanSize    = 256
+        ProcessOrderWaitingTime = time.Nanosecond
+
+        UpdateExistedNewOrdersWaitingTime = 2 * time.Minute
+
+        AccrualSystemRequestTimeout = 2 * time.Second
+
+        ConfigKey = "config"
+
+        RunAddressKey = "run_address"
+)
+
+func migrate(dsn string) error <span class="cov0" title="0">{
+        db, err := goose.OpenDBWithDriver("postgres", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err := db.Close(); err != nil </span><span class="cov0" title="0">{
+                        logger.Log.Fatal("Failed to close DB",
+                                zap.Error(err),
+                        )
+                }</span>
+        }()
+        <span class="cov0" title="0">ctx := context.Background()
+        return goose.RunContext(ctx, "up", db, "./migrations/")</span>
+}
+
+func connectPostgres(dsn string) (*sql.DB, error) <span class="cov0" title="0">{
+        db, err := sql.Open("pgx", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">err = db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Error("Failed to ping DB Postgres",
+                        zap.Error(err),
+                )
+        }</span>
+        <span class="cov0" title="0">return db, nil</span>
+}
+
+type Middlewares struct {
+        RequestLogger  func(http.Handler) http.Handler
+        AuthMiddleware func(http.Handler) http.Handler
+        GzipMiddleware func(http.Handler) http.Handler
+}
+
+type AppHandlerInterface interface {
+        Register(w http.ResponseWriter, r *http.Request)
+        Login(w http.ResponseWriter, r *http.Request)
+        CreateOrder(w http.ResponseWriter, r *http.Request)
+        GetOrders(w http.ResponseWriter, r *http.Request)
+        GetBalance(w http.ResponseWriter, r *http.Request)
+        CreateWithdrawal(w http.ResponseWriter, r *http.Request)
+        GetWithdrawals(w http.ResponseWriter, r *http.Request)
+}
+
+func router(
+        appHandler AppHandlerInterface,
+        middlewares *Middlewares,
+) chi.Router <span class="cov0" title="0">{
+        r := chi.NewRouter()
+        r.Use(middlewares.RequestLogger, middlewares.GzipMiddleware)
+        r.Post(`/api/user/register`, appHandler.Register)
+        r.Post(`/api/user/login`, appHandler.Login)
+        r.Route(`/api/user`, func(r chi.Router) </span><span class="cov0" title="0">{
+                r.Use(middlewares.AuthMiddleware)
+                r.Post(`/orders`, appHandler.CreateOrder)
+                r.Get(`/orders`, appHandler.GetOrders)
+                r.Get(`/balance`, appHandler.GetBalance)
+                r.Post(`/balance/withdraw`, appHandler.CreateWithdrawal)
+                r.Get(`/withdrawals`, appHandler.GetWithdrawals)
+        }</span>)
+
+        <span class="cov0" title="0">return r</span>
+}
+
+func main() <span class="cov0" title="0">{
+        config, err := NewConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalln("CRITICAL\tFailed to get config. Error:", err)
+        }</span>
+
+        <span class="cov0" title="0">err = logger.Initialize(config.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalln("CRITICAL\tFailed to init logger. Error:", err)
+        }</span>
+
+        <span class="cov0" title="0">logger.Log.Debug("Config data",
+                zap.Any(ConfigKey, config),
+        )
+
+        db, err := connectPostgres(config.DatabaseURI)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatal("Failed to connect to Postgres",
+                        zap.Error(err),
+                )
+        }</span>
+        <span class="cov0" title="0">defer db.Close()
+
+        logger.Log.Info("Applying migrations")
+        err = migrate(config.DatabaseURI)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatal("Failed to apply migrations",
+                        zap.Error(err),
+                )
+        }</span>
+
+        <span class="cov0" title="0">appRepo, err := repo.NewAppRepo(db)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatal("Failed to create AppRepo",
+                        zap.Error(err),
+                )
+        }</span>
+
+        <span class="cov0" title="0">accrualSystemClient := accrual.NewAccrualSystemClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
+        appUsecase, err := usecase.NewAppUsecase(
+                appRepo,
+                accrualSystemClient,
+                config.MinLoginLen,
+                config.PasswordKey,
+                config.MinPasswordLen,
+                config.TokenKey,
+                config.TokenExpiration,
+                config.ProcessOrderChanSize,
+                config.ProcessOrderWaitingTime,
+                config.UpdateExistedNewOrdersWaitingTime,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatal("Failed to create AppUsecase",
+                        zap.Error(err),
+                )
+        }</span>
+        <span class="cov0" title="0">defer appUsecase.Close()
+
+        appHandler := delivery.NewAppHandler(appUsecase)
+
+        middlewares := &amp;Middlewares{
+                RequestLogger:  logger.RequestLoggerMiddleware,
+                AuthMiddleware: appHandler.AuthMiddleware,
+                GzipMiddleware: gzip.GzipMiddleware,
+        }
+
+        r := router(appHandler, middlewares)
+
+        logger.Log.Info("Server running",
+                zap.String(RunAddressKey, config.RunAddress),
+        )
+        go func() </span><span class="cov0" title="0">{
+                err = http.ListenAndServe(config.RunAddress, r)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.Log.Fatal("Failed to start server",
+                                zap.Error(err),
+                        )
+                }</span>
+        }()
+
+        <span class="cov0" title="0">exitChan := make(chan os.Signal, 1)
+        signal.Notify(exitChan, syscall.SIGINT, syscall.SIGTERM)
+
+        for exitSyg := range exitChan </span><span class="cov0" title="0">{
+                logger.Log.Info("terminating: via signal", zap.Any("signal", exitSyg))
+                break</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "flag"
+        "github.com/caarlos0/env"
+)
+
+type Config struct {
+        Size     int    `env:"SIZE"`
+        LogLevel string `env:"LOG_LEVEL"`
+}
+
+func NewConfig() (*Config, error) <span class="cov0" title="0">{
+        config := &amp;Config{}
+
+        flag.IntVar(&amp;config.Size, "s", Size, "Key size")
+        flag.StringVar(&amp;config.LogLevel, "l", "", "Log level")
+        flag.Parse()
+
+        err := env.Parse(config)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">if config.LogLevel == "" </span><span class="cov0" title="0">{
+                config.LogLevel = LogLevel
+        }</span>
+
+        <span class="cov0" title="0">return config, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package main
+
+import (
+        "crypto/rand"
+        "errors"
+        "fmt"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "go.uber.org/zap"
+        "log"
+)
+
+const (
+        Size     = 16
+        LogLevel = "INFO"
+
+        ConfigKey string = "config"
+)
+
+var ErrZeroSize = errors.New("key size &lt;= 0")
+
+func generateRandomKey(size int) ([]byte, error) <span class="cov0" title="0">{
+        if size &lt;= 0 </span><span class="cov0" title="0">{
+                return nil, ErrZeroSize
+        }</span>
+
+        // генерируем случайную последовательность байт
+        <span class="cov0" title="0">b := make([]byte, size)
+        _, err := rand.Read(b)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return b, nil</span>
+}
+
+func main() <span class="cov0" title="0">{
+        config, err := NewConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalln("CRITICAL\tFailed to get config. Error:", err)
+        }</span>
+
+        <span class="cov0" title="0">err = logger.Initialize(config.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalln("CRITICAL\tFailed to init logger. Error:", err)
+        }</span>
+
+        <span class="cov0" title="0">logger.Log.Debug("Config data",
+                zap.Any(ConfigKey, config),
+        )
+
+        // создаём случайный ключ
+        key, err := generateRandomKey(config.Size)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Log.Fatal("Failed to generate key", zap.Error(err))
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Key: %x\n", key)</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package accrual
+
+import (
+        "context"
+        "errors"
+        loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "github.com/go-resty/resty/v2"
+        "go.uber.org/zap"
+        "net/http"
+        "time"
+)
+
+var (
+        ErrOrderNotRegistered  = errors.New("order not registered")
+        ErrTooManyRequests     = errors.New("too many requests")
+        ErrInternalServerError = errors.New("internal server error")
+)
+
+type AccrualSystemClient struct {
+        client *resty.Client
+}
+
+func NewAccrualSystemClient(accrualSystemAddress string, timeout time.Duration) *AccrualSystemClient <span class="cov0" title="0">{
+        client := resty.New()
+        client.SetBaseURL(accrualSystemAddress)
+        client.SetTimeout(timeout)
+        return &amp;AccrualSystemClient{
+                client: client,
+        }
+}</span>
+
+type OrderInfo struct {
+        Number  string   `json:"number"`
+        Status  string   `json:"status"`
+        Accrual *float64 `json:"accrual,omitempty"`
+}
+
+func (asc AccrualSystemClient) GetOrderInfo(ctx context.Context, orderNumber string) (OrderInfo, error) <span class="cov0" title="0">{
+        logger := loggerInternal.GetContextLogger(ctx)
+
+        var orderInfo OrderInfo
+
+        resp, err := asc.client.R().SetResult(&amp;orderInfo).SetPathParams(map[string]string{
+                "number": orderNumber,
+        }).Get("/api/orders/{number}")
+        if err != nil </span><span class="cov0" title="0">{
+                return OrderInfo{}, err
+        }</span>
+
+        <span class="cov0" title="0">statusCode := resp.StatusCode()
+
+        if statusCode != http.StatusOK </span><span class="cov0" title="0">{
+                logger.Warn("Order info not received", zap.String("order_number", orderNumber), zap.String("status", resp.Status()))
+                switch statusCode </span>{
+                case 204:<span class="cov0" title="0">
+                        return OrderInfo{}, ErrOrderNotRegistered</span>
+                case 429:<span class="cov0" title="0">
+                        return OrderInfo{}, ErrTooManyRequests</span>
+                case 500:<span class="cov0" title="0">
+                        return OrderInfo{}, ErrInternalServerError</span>
+                default:<span class="cov0" title="0">
+                        return OrderInfo{}, ErrInternalServerError</span>
+                }
+        }
+
+        <span class="cov0" title="0">return orderInfo, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package app
+
+import (
+        "encoding/json"
+        "errors"
+        "time"
+)
+
+type User struct {
+        ID           uint
+        Login        string
+        PasswordHash string
+}
+
+type Balance struct {
+        ID        uint    `json:"-"`
+        UserID    uint    `json:"-"`
+        Current   float64 `json:"current"`
+        Withdrawn float64 `json:"withdrawn"`
+}
+
+type Order struct {
+        ID         uint      `json:"-"`
+        UserID     uint      `json:"-"`
+        Number     string    `json:"number"`
+        Status     string    `json:"status"`
+        Accrual    *float64  `json:"accrual,omitempty"`
+        UploadedAt time.Time `json:"uploaded_at"`
+}
+
+func (o Order) MarshalJSON() ([]byte, error) <span class="cov8" title="1">{
+        type OrderAlias Order
+
+        aliasValue := struct {
+                OrderAlias
+                UploadedAt string `json:"uploaded_at"`
+        }{
+                OrderAlias: OrderAlias(o),
+                UploadedAt: o.UploadedAt.Format(time.RFC3339),
+        }
+
+        return json.Marshal(aliasValue)
+}</span>
+
+type Withdrawal struct {
+        ID          uint      `json:"-"`
+        UserID      uint      `json:"-"`
+        OrderNumber string    `json:"order"`
+        Sum         float64   `json:"sum"`
+        ProcessedAt time.Time `json:"processed_at"`
+}
+
+func (w Withdrawal) MarshalJSON() ([]byte, error) <span class="cov8" title="1">{
+        type WithdrawalAlias Withdrawal
+
+        aliasValue := struct {
+                WithdrawalAlias
+                ProcessedAt string `json:"processed_at"`
+        }{
+                WithdrawalAlias: WithdrawalAlias(w),
+                ProcessedAt:     w.ProcessedAt.Format(time.RFC3339),
+        }
+
+        return json.Marshal(aliasValue)
+}</span>
+
+var (
+        ErrLoginTaken                 = errors.New("login already taken")
+        ErrInvalidLoginPassword       = errors.New("invalid login/password")
+        ErrInvalidLoginPasswordFormat = errors.New("invalid login/password format")
+
+        ErrOrderUploaded              = errors.New("order number has already been uploaded by this user")
+        ErrOrderUploadedByAnotherUser = errors.New("order number has already been uploaded by another user")
+
+        ErrInsufficientFunds  = errors.New("there are insufficient funds in the account")
+        ErrInvalidOrderNumber = errors.New("invalid order number")
+)
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package delivery
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app"
+        loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "go.uber.org/zap"
+        "io"
+        "net/http"
+        "strings"
+)
+
+type UserIDKeyType string
+
+const (
+        ContentTypeKey                   = "Content-Type"
+        ApplicationJSONKey               = "application/json"
+        TextPlainKey                     = "text/plain"
+        HeaderKey                        = "header"
+        RequestBodyKey                   = "request_body"
+        AccessTokenKey                   = "accessToken"
+        UserIDKey          UserIDKeyType = "user_id"
+)
+
+func getContextUserID(ctx context.Context) (uint, error) <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("no context")
+        }</span>
+        <span class="cov8" title="1">userID, ok := ctx.Value(UserIDKey).(uint)
+        if !ok </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("no %v", UserIDKey)
+        }</span>
+        <span class="cov8" title="1">return userID, nil</span>
+}
+
+type AppUsecaseInterface interface {
+        Register(ctx context.Context, login, password string) (*app.User, error)
+        Login(ctx context.Context, login, password string) (*app.User, error)
+        BuildJWTString(ctx context.Context, userID uint) (string, error)
+        GetUserID(tokenString string) (uint, error)
+        CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
+        GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
+        GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
+        CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+        GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
+}
+
+type AppHandler struct {
+        AppUsecase AppUsecaseInterface
+}
+
+func NewAppHandler(appUsecase AppUsecaseInterface) *AppHandler <span class="cov8" title="1">{
+        return &amp;AppHandler{AppUsecase: appUsecase}
+}</span>
+
+func (ah *AppHandler) Register(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Registration")
+
+        contentType := r.Header.Get(ContentTypeKey)
+        if !strings.Contains(contentType, ApplicationJSONKey) </span><span class="cov8" title="1">{
+                logger.Warn("Request header \"Content-Type\" does not contain \"application/json\"",
+                        zap.Any(HeaderKey, r.Header),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(fmt.Sprintf("Header '%s' is not contain '%s'", ContentTypeKey, ApplicationJSONKey)))
+                return
+        }</span>
+
+        <span class="cov8" title="1">type Request struct {
+                Login    string `json:"login"`
+                Password string `json:"password"`
+        }
+
+        var req Request
+        dec := json.NewDecoder(r.Body)
+        err := dec.Decode(&amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Failed to decode request body",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte("Request body could not be deserialized"))
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := ah.AppUsecase.Register(r.Context(), req.Login, req.Password)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Invalid login/password",
+                        zap.Error(err),
+                )
+                switch err </span>{
+                case app.ErrLoginTaken:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusConflict)</span>
+                case app.ErrInvalidLoginPasswordFormat:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusBadRequest)</span>
+                default:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusInternalServerError)</span>
+                }
+                <span class="cov8" title="1">w.Write([]byte(err.Error()))
+                return</span>
+        }
+
+        <span class="cov8" title="1">accessToken, err := ah.AppUsecase.BuildJWTString(r.Context(), user.ID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to build JWT",
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">http.SetCookie(w, &amp;http.Cookie{Name: AccessTokenKey, Value: accessToken, Path: "/"})</span>
+}
+
+func (ah *AppHandler) Login(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Login")
+
+        contentType := r.Header.Get(ContentTypeKey)
+        if !strings.Contains(contentType, ApplicationJSONKey) </span><span class="cov8" title="1">{
+                logger.Warn("Request header \"Content-Type\" does not contain \"application/json\"",
+                        zap.Any(HeaderKey, r.Header),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(fmt.Sprintf("Header '%s' is not contain '%s'", ContentTypeKey, ApplicationJSONKey)))
+                return
+        }</span>
+
+        <span class="cov8" title="1">type Request struct {
+                Login    string `json:"login"`
+                Password string `json:"password"`
+        }
+
+        var req Request
+        dec := json.NewDecoder(r.Body)
+        err := dec.Decode(&amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Failed to decode request body",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte("Request body could not be deserialized"))
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := ah.AppUsecase.Login(r.Context(), req.Login, req.Password)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Invalid login/password",
+                        zap.Error(err),
+                )
+                switch err </span>{
+                case app.ErrInvalidLoginPassword:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusUnauthorized)</span>
+                default:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusInternalServerError)</span>
+                }
+                <span class="cov8" title="1">w.Write([]byte(err.Error()))
+                return</span>
+        }
+
+        <span class="cov8" title="1">accessToken, err := ah.AppUsecase.BuildJWTString(r.Context(), user.ID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to build JWT",
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">http.SetCookie(w, &amp;http.Cookie{Name: AccessTokenKey, Value: accessToken, Path: "/"})</span>
+}
+
+func (ah *AppHandler) CreateOrder(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Create order")
+
+        contentType := r.Header.Get(ContentTypeKey)
+        if !strings.Contains(contentType, TextPlainKey) </span><span class="cov8" title="1">{
+                logger.Warn("Request header \"Content-Type\" does not contain \"text/plain\"",
+                        zap.Any(HeaderKey, r.Header),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(fmt.Sprintf("Header '%s' is not contain '%s'", ContentTypeKey, TextPlainKey)))
+                return
+        }</span>
+
+        <span class="cov8" title="1">body, err := io.ReadAll(r.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to read request body",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov8" title="1">bodyStr := string(body)
+
+        userID, err := getContextUserID(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("No user ID",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+        }</span>
+
+        <span class="cov8" title="1">_, err = ah.AppUsecase.CreateOrder(r.Context(), userID, bodyStr)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Failed to create new order",
+                        zap.Error(err),
+                )
+                switch err </span>{
+                case app.ErrOrderUploaded:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusOK)</span>
+                case app.ErrOrderUploadedByAnotherUser:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusConflict)</span>
+                case app.ErrInvalidOrderNumber:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusUnprocessableEntity)</span>
+                default:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusInternalServerError)</span>
+                }
+                <span class="cov8" title="1">w.Write([]byte(err.Error()))
+                return</span>
+        }
+
+        <span class="cov8" title="1">w.WriteHeader(http.StatusAccepted)</span>
+}
+
+func (ah *AppHandler) GetOrders(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Getting orders")
+
+        userID, err := getContextUserID(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("No user ID",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+        }</span>
+
+        <span class="cov8" title="1">orders, err := ah.AppUsecase.GetOrders(r.Context(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Warn("Failed to get orders",
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">if len(orders) == 0 </span><span class="cov8" title="1">{
+                logger.Warn("No orders")
+                w.WriteHeader(http.StatusNoContent)
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set(ContentTypeKey, ApplicationJSONKey)
+
+        enc := json.NewEncoder(w)
+        err = enc.Encode(orders)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to encode orders",
+                        zap.Error(err),
+                )
+        }</span>
+}
+
+func (ah *AppHandler) GetBalance(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Getting balance")
+
+        userID, err := getContextUserID(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("No user ID",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+        }</span>
+
+        <span class="cov8" title="1">balance, err := ah.AppUsecase.GetBalance(r.Context(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Warn("Failed to get balance",
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set(ContentTypeKey, ApplicationJSONKey)
+
+        enc := json.NewEncoder(w)
+        err = enc.Encode(balance)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to encode balance",
+                        zap.Error(err),
+                )
+        }</span>
+}
+
+func (ah *AppHandler) CreateWithdrawal(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Getting balance")
+
+        userID, err := getContextUserID(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("No user ID",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+        }</span>
+
+        <span class="cov8" title="1">contentType := r.Header.Get(ContentTypeKey)
+        if !strings.Contains(contentType, ApplicationJSONKey) </span><span class="cov8" title="1">{
+                logger.Warn("Request header \"Content-Type\" does not contain \"application/json\"",
+                        zap.Any(HeaderKey, r.Header),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte(fmt.Sprintf("Header '%s' is not contain '%s'", ContentTypeKey, ApplicationJSONKey)))
+                return
+        }</span>
+
+        <span class="cov8" title="1">type Request struct {
+                Order string  `json:"order"`
+                Sum   float64 `json:"sum"`
+        }
+
+        var req Request
+        dec := json.NewDecoder(r.Body)
+        err = dec.Decode(&amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Warn("Failed to decode request body",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusBadRequest)
+                w.Write([]byte("Request body could not be deserialized"))
+                return
+        }</span>
+
+        <span class="cov8" title="1">_, err = ah.AppUsecase.CreateWithdrawal(r.Context(), userID, req.Order, req.Sum)
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("Failed to create withdraw",
+                        zap.Error(err),
+                )
+                switch err </span>{
+                case app.ErrInsufficientFunds:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusPaymentRequired)</span>
+                case app.ErrInvalidOrderNumber:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusUnprocessableEntity)</span>
+                case app.ErrOrderUploaded:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusOK)</span>
+                case app.ErrOrderUploadedByAnotherUser:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusConflict)</span>
+                default:<span class="cov0" title="0">
+                        w.WriteHeader(http.StatusInternalServerError)</span>
+                }
+                <span class="cov8" title="1">w.Write([]byte(err.Error()))
+                return</span>
+        }
+
+        <span class="cov8" title="1">w.WriteHeader(http.StatusOK)</span>
+}
+
+func (ah *AppHandler) GetWithdrawals(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(r.Context())
+
+        logger.Info("Getting withdrawals")
+
+        userID, err := getContextUserID(r.Context())
+        if err != nil </span><span class="cov8" title="1">{
+                logger.Warn("No user ID",
+                        zap.Any(RequestBodyKey, r.Body),
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+        }</span>
+
+        <span class="cov8" title="1">withdrawals, err := ah.AppUsecase.GetWithdrawals(r.Context(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Warn("Failed to get withdrawals",
+                        zap.Error(err),
+                )
+                w.WriteHeader(http.StatusInternalServerError)
+                w.Write([]byte(err.Error()))
+                return
+        }</span>
+
+        <span class="cov8" title="1">if len(withdrawals) == 0 </span><span class="cov8" title="1">{
+                logger.Warn("No withdrawals")
+                w.WriteHeader(http.StatusNoContent)
+                return
+        }</span>
+
+        <span class="cov8" title="1">w.Header().Set(ContentTypeKey, ApplicationJSONKey)
+        w.WriteHeader(http.StatusOK)
+
+        enc := json.NewEncoder(w)
+        err = enc.Encode(withdrawals)
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Error("Failed to encode withdrawals",
+                        zap.Error(err),
+                )
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package delivery
+
+import (
+        "context"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "go.uber.org/zap"
+        "net/http"
+)
+
+func (ah *AppHandler) AuthMiddleware(h http.Handler) http.Handler <span class="cov8" title="1">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                cookie, err := r.Cookie(AccessTokenKey)
+                if err != nil </span><span class="cov8" title="1">{
+                        w.WriteHeader(http.StatusUnauthorized)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">value := cookie.Value
+                userID, err := ah.AppUsecase.GetUserID(value)
+                if err != nil </span><span class="cov8" title="1">{
+                        w.WriteHeader(http.StatusUnauthorized)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">ctx := context.WithValue(r.Context(), UserIDKey, userID)
+
+                ctxLogger := logger.GetContextLogger(r.Context())
+                ctxLogger = ctxLogger.With(zap.Uint(string(UserIDKey), userID))
+                ctx = context.WithValue(ctx, logger.LoggerKey, ctxLogger)
+
+                h.ServeHTTP(w, r.WithContext(ctx))</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: internal/app/delivery/http.go
+
+// Package mocks is a generated GoMock package.
+package mocks
+
+import (
+        context "context"
+        reflect "reflect"
+
+        app "github.com/MisterMaks/go-yandex-gophermart/internal/app"
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockAppUsecaseInterface is a mock of AppUsecaseInterface interface.
+type MockAppUsecaseInterface struct {
+        ctrl     *gomock.Controller
+        recorder *MockAppUsecaseInterfaceMockRecorder
+}
+
+// MockAppUsecaseInterfaceMockRecorder is the mock recorder for MockAppUsecaseInterface.
+type MockAppUsecaseInterfaceMockRecorder struct {
+        mock *MockAppUsecaseInterface
+}
+
+// NewMockAppUsecaseInterface creates a new mock instance.
+func NewMockAppUsecaseInterface(ctrl *gomock.Controller) *MockAppUsecaseInterface <span class="cov8" title="1">{
+        mock := &amp;MockAppUsecaseInterface{ctrl: ctrl}
+        mock.recorder = &amp;MockAppUsecaseInterfaceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAppUsecaseInterface) EXPECT() *MockAppUsecaseInterfaceMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// BuildJWTString mocks base method.
+func (m *MockAppUsecaseInterface) BuildJWTString(ctx context.Context, userID uint) (string, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "BuildJWTString", ctx, userID)
+        ret0, _ := ret[0].(string)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// BuildJWTString indicates an expected call of BuildJWTString.
+func (mr *MockAppUsecaseInterfaceMockRecorder) BuildJWTString(ctx, userID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildJWTString", reflect.TypeOf((*MockAppUsecaseInterface)(nil).BuildJWTString), ctx, userID)
+}</span>
+
+// CreateOrder mocks base method.
+func (m *MockAppUsecaseInterface) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateOrder", ctx, userID, number)
+        ret0, _ := ret[0].(*app.Order)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateOrder indicates an expected call of CreateOrder.
+func (mr *MockAppUsecaseInterfaceMockRecorder) CreateOrder(ctx, userID, number interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateOrder), ctx, userID, number)
+}</span>
+
+// CreateWithdrawal mocks base method.
+func (m *MockAppUsecaseInterface) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateWithdrawal", ctx, userID, orderNumber, sum)
+        ret0, _ := ret[0].(*app.Withdrawal)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateWithdrawal indicates an expected call of CreateWithdrawal.
+func (mr *MockAppUsecaseInterfaceMockRecorder) CreateWithdrawal(ctx, userID, orderNumber, sum interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdrawal", reflect.TypeOf((*MockAppUsecaseInterface)(nil).CreateWithdrawal), ctx, userID, orderNumber, sum)
+}</span>
+
+// GetBalance mocks base method.
+func (m *MockAppUsecaseInterface) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetBalance", ctx, userID)
+        ret0, _ := ret[0].(*app.Balance)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetBalance indicates an expected call of GetBalance.
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetBalance(ctx, userID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetBalance), ctx, userID)
+}</span>
+
+// GetOrders mocks base method.
+func (m *MockAppUsecaseInterface) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetOrders", ctx, userID)
+        ret0, _ := ret[0].([]*app.Order)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetOrders indicates an expected call of GetOrders.
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetOrders(ctx, userID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetOrders), ctx, userID)
+}</span>
+
+// GetUserID mocks base method.
+func (m *MockAppUsecaseInterface) GetUserID(tokenString string) (uint, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetUserID", tokenString)
+        ret0, _ := ret[0].(uint)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetUserID indicates an expected call of GetUserID.
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetUserID(tokenString interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserID", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetUserID), tokenString)
+}</span>
+
+// GetWithdrawals mocks base method.
+func (m *MockAppUsecaseInterface) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetWithdrawals", ctx, userID)
+        ret0, _ := ret[0].([]*app.Withdrawal)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetWithdrawals indicates an expected call of GetWithdrawals.
+func (mr *MockAppUsecaseInterfaceMockRecorder) GetWithdrawals(ctx, userID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawals", reflect.TypeOf((*MockAppUsecaseInterface)(nil).GetWithdrawals), ctx, userID)
+}</span>
+
+// Login mocks base method.
+func (m *MockAppUsecaseInterface) Login(ctx context.Context, login, password string) (*app.User, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Login", ctx, login, password)
+        ret0, _ := ret[0].(*app.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// Login indicates an expected call of Login.
+func (mr *MockAppUsecaseInterfaceMockRecorder) Login(ctx, login, password interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAppUsecaseInterface)(nil).Login), ctx, login, password)
+}</span>
+
+// Register mocks base method.
+func (m *MockAppUsecaseInterface) Register(ctx context.Context, login, password string) (*app.User, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Register", ctx, login, password)
+        ret0, _ := ret[0].(*app.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// Register indicates an expected call of Register.
+func (mr *MockAppUsecaseInterfaceMockRecorder) Register(ctx, login, password interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAppUsecaseInterface)(nil).Register), ctx, login, password)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package gzip
+
+import (
+        "compress/gzip"
+        "io"
+        "net/http"
+        "strings"
+)
+
+const (
+        ContentTypeKey     string = "Content-Type"
+        TextHTTPKey        string = "text/plain"
+        ApplicationJSONKey string = "application/json"
+        GzipKey            string = "gzip"
+        ContentEncodingKey string = "Content-Encoding"
+        AcceptEncodingKey  string = "Accept-Encoding"
+)
+
+// compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
+// сжимать передаваемые данные и выставлять правильные HTTP-заголовки
+type compressWriter struct {
+        w  http.ResponseWriter
+        zw *gzip.Writer
+}
+
+func newCompressWriter(w http.ResponseWriter) *compressWriter <span class="cov8" title="1">{
+        return &amp;compressWriter{
+                w:  w,
+                zw: gzip.NewWriter(w),
+        }
+}</span>
+
+func (c *compressWriter) Header() http.Header <span class="cov0" title="0">{
+        return c.w.Header()
+}</span>
+
+func (c *compressWriter) Write(p []byte) (int, error) <span class="cov8" title="1">{
+        return c.zw.Write(p)
+}</span>
+
+func (c *compressWriter) WriteHeader(statusCode int) <span class="cov0" title="0">{
+        if statusCode &lt; 300 </span><span class="cov0" title="0">{
+                c.w.Header().Set(ContentEncodingKey, GzipKey)
+        }</span>
+        <span class="cov0" title="0">c.w.WriteHeader(statusCode)</span>
+}
+
+// Close закрывает gzip.Writer и досылает все данные из буфера.
+func (c *compressWriter) Close() error <span class="cov8" title="1">{
+        return c.zw.Close()
+}</span>
+
+// compressReader реализует интерфейс io.ReadCloser и позволяет прозрачно для сервера
+// декомпрессировать получаемые от клиента данные
+type compressReader struct {
+        r  io.ReadCloser
+        zr *gzip.Reader
+}
+
+func newCompressReader(r io.ReadCloser) (*compressReader, error) <span class="cov8" title="1">{
+        zr, err := gzip.NewReader(r)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;compressReader{
+                r:  r,
+                zr: zr,
+        }, nil</span>
+}
+
+func (c compressReader) Read(p []byte) (n int, err error) <span class="cov8" title="1">{
+        return c.zr.Read(p)
+}</span>
+
+func (c *compressReader) Close() error <span class="cov8" title="1">{
+        if err := c.r.Close(); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return c.zr.Close()</span>
+}
+
+func GzipMiddleware(h http.Handler) http.Handler <span class="cov8" title="1">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                contentType := r.Header.Get(ContentTypeKey)
+                if !(strings.Contains(contentType, TextHTTPKey) || strings.Contains(contentType, ApplicationJSONKey) || strings.Contains(contentType, "application/x-gzip")) </span><span class="cov0" title="0">{
+                        h.ServeHTTP(w, r)
+                        return
+                }</span>
+
+                // по умолчанию устанавливаем оригинальный http.ResponseWriter как тот,
+                // который будем передавать следующей функции
+                <span class="cov8" title="1">ow := w
+
+                // проверяем, что клиент умеет получать от сервера сжатые данные в формате gzip
+                acceptEncoding := r.Header.Get(AcceptEncodingKey)
+                supportsGzip := strings.Contains(acceptEncoding, GzipKey)
+                if supportsGzip </span><span class="cov8" title="1">{
+                        // оборачиваем оригинальный http.ResponseWriter новым с поддержкой сжатия
+                        cw := newCompressWriter(w)
+                        // меняем оригинальный http.ResponseWriter на новый
+                        ow = cw
+                        // не забываем отправить клиенту все сжатые данные после завершения middleware
+                        defer cw.Close()
+                }</span>
+
+                // проверяем, что клиент отправил серверу сжатые данные в формате gzip
+                <span class="cov8" title="1">contentEncoding := r.Header.Get(ContentEncodingKey)
+                sendsGzip := strings.Contains(contentEncoding, GzipKey)
+                if sendsGzip </span><span class="cov8" title="1">{
+                        // оборачиваем тело запроса в io.Reader с поддержкой декомпрессии
+                        cr, err := newCompressReader(r.Body)
+                        if err != nil </span><span class="cov0" title="0">{
+                                w.WriteHeader(http.StatusBadRequest)
+                                return
+                        }</span>
+                        // меняем тело запроса на новое
+                        <span class="cov8" title="1">r.Body = cr
+                        defer cr.Close()</span>
+                }
+
+                // передаём управление хендлеру
+                <span class="cov8" title="1">h.ServeHTTP(ow, r)</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package repo
+
+import (
+        "context"
+        "database/sql"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app"
+        "time"
+)
+
+const (
+        CreateUserQuery      = `INSERT INTO "user" (login, password_hash) VALUES ($1, $2) RETURNING id;`
+        CreateBalanceQuery   = `INSERT INTO balance (user_id) VALUES ($1);`
+        GetUserQuery         = `SELECT id FROM "user" WHERE login = $1 AND password_hash = $2;`
+        CreateOrderQuery     = `INSERT INTO "order" (user_id, number) VALUES ($1, $2) ON CONFLICT (user_id, number) DO NOTHING RETURNING id, status, uploaded_at;`
+        UpdateOrderQuery     = `UPDATE "order" SET status = $1, accrual = $2 WHERE id = $3;`
+        GetOrdersQuery       = `SELECT id, number, status, accrual, uploaded_at FROM "order" WHERE user_id = $1 ORDER BY uploaded_at DESC;`
+        GetNewOrdersQuery    = `SELECT id, user_id, number, status, accrual, uploaded_at FROM "order" WHERE status = 'NEW';`
+        GetBalanceQuery      = `SELECT id, current, withdrawn FROM balance WHERE user_id = $1;`
+        AddBalanceQuery      = `UPDATE balance SET current = current + $1 WHERE user_id = $2;`
+        WithdrawBalanceQuery = `UPDATE balance SET current = current - $1, withdrawn = withdrawn + $2 WHERE user_id = $3;`
+        CreateWithdrawQuery  = `INSERT INTO withdrawal (user_id, order_number, sum) VALUES ($1, $2, $3) ON CONFLICT (user_id, order_number) DO NOTHING RETURNING id, processed_at;`
+        GetWithdrawalsQuery  = `SELECT id, order_number, sum, processed_at FROM withdrawal WHERE user_id = $1 ORDER BY processed_at DESC;`
+)
+
+type AppRepo struct {
+        db *sql.DB
+}
+
+func NewAppRepo(db *sql.DB) (*AppRepo, error) <span class="cov8" title="1">{
+        return &amp;AppRepo{db: db}, nil
+}</span>
+
+func (ar *AppRepo) CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error) <span class="cov8" title="1">{
+        // запускаем транзакцию
+        tx, err := ar.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // в случае неуспешного коммита все изменения транзакции будут отменены
+        <span class="cov8" title="1">defer tx.Rollback()
+
+        row := tx.QueryRowContext(
+                ctx,
+                CreateUserQuery,
+                login,
+                passwordHash,
+        )
+
+        var id uint
+        err = row.Scan(&amp;id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">_, err = tx.ExecContext(ctx, CreateBalanceQuery, id)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">err = tx.Commit()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;app.User{
+                ID:           id,
+                Login:        login,
+                PasswordHash: passwordHash,
+        }, nil</span>
+}
+
+func (ar *AppRepo) AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error) <span class="cov8" title="1">{
+        row := ar.db.QueryRowContext(
+                ctx,
+                GetUserQuery,
+                login,
+                passwordHash,
+        )
+
+        var id uint
+        err := row.Scan(&amp;id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;app.User{
+                ID:           id,
+                Login:        login,
+                PasswordHash: passwordHash,
+        }, nil</span>
+}
+
+func (ar *AppRepo) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) <span class="cov8" title="1">{
+        row := ar.db.QueryRowContext(
+                ctx,
+                CreateOrderQuery,
+                userID,
+                number,
+        )
+
+        var id uint
+        var status string
+        var uploadedAt time.Time
+        err := row.Scan(&amp;id, &amp;status, &amp;uploadedAt)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;app.Order{
+                ID:         id,
+                UserID:     userID,
+                Number:     number,
+                Status:     status,
+                Accrual:    nil,
+                UploadedAt: uploadedAt,
+        }, nil</span>
+}
+
+func (ar *AppRepo) UpdateOrder(ctx context.Context, order *app.Order) error <span class="cov8" title="1">{
+        // запускаем транзакцию
+        tx, err := ar.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // в случае неуспешного коммита все изменения транзакции будут отменены
+        <span class="cov8" title="1">defer tx.Rollback()
+
+        _, err = tx.ExecContext(
+                ctx,
+                UpdateOrderQuery,
+                order.Status,
+                order.Accrual,
+                order.ID,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">_, err = tx.ExecContext(
+                ctx,
+                AddBalanceQuery,
+                order.Accrual,
+                order.UserID,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">err = tx.Commit()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (ar *AppRepo) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) <span class="cov8" title="1">{
+        rows, err := ar.db.QueryContext(
+                ctx,
+                GetOrdersQuery,
+                userID,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        orders := []*app.Order{}
+        for rows.Next() </span><span class="cov8" title="1">{
+                var (
+                        id         uint
+                        number     string
+                        status     string
+                        accrual    *float64
+                        uploadedAt time.Time
+                )
+
+                err = rows.Scan(
+                        &amp;id,
+                        &amp;number,
+                        &amp;status,
+                        &amp;accrual,
+                        &amp;uploadedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">orders = append(orders, &amp;app.Order{
+                        ID:         id,
+                        UserID:     userID,
+                        Number:     number,
+                        Status:     status,
+                        Accrual:    accrual,
+                        UploadedAt: uploadedAt,
+                })</span>
+        }
+
+        <span class="cov8" title="1">err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return orders, nil</span>
+}
+
+func (ar *AppRepo) GetNewOrders(ctx context.Context) ([]*app.Order, error) <span class="cov8" title="1">{
+        rows, err := ar.db.QueryContext(
+                ctx,
+                GetNewOrdersQuery,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        orders := []*app.Order{}
+        for rows.Next() </span><span class="cov8" title="1">{
+                var (
+                        id         uint
+                        userID     uint
+                        number     string
+                        status     string
+                        accrual    *float64
+                        uploadedAt time.Time
+                )
+
+                err = rows.Scan(
+                        &amp;id,
+                        &amp;userID,
+                        &amp;number,
+                        &amp;status,
+                        &amp;accrual,
+                        &amp;uploadedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">orders = append(orders, &amp;app.Order{
+                        ID:         id,
+                        UserID:     userID,
+                        Number:     number,
+                        Status:     status,
+                        Accrual:    accrual,
+                        UploadedAt: uploadedAt,
+                })</span>
+        }
+
+        <span class="cov8" title="1">err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return orders, nil</span>
+}
+
+func (ar *AppRepo) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) <span class="cov8" title="1">{
+        row := ar.db.QueryRowContext(
+                ctx,
+                GetBalanceQuery,
+                userID,
+        )
+
+        var id uint
+        var current float64
+        var withdrawn float64
+        err := row.Scan(&amp;id, &amp;current, &amp;withdrawn)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;app.Balance{
+                ID:        id,
+                UserID:    userID,
+                Current:   current,
+                Withdrawn: withdrawn,
+        }, nil</span>
+}
+
+func (ar *AppRepo) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) <span class="cov8" title="1">{
+        // запускаем транзакцию
+        tx, err := ar.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // в случае неуспешного коммита все изменения транзакции будут отменены
+        <span class="cov8" title="1">defer tx.Rollback()
+
+        _, err = tx.ExecContext(ctx, WithdrawBalanceQuery, sum, sum, userID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">row := tx.QueryRowContext(
+                ctx,
+                CreateWithdrawQuery,
+                userID,
+                orderNumber,
+                sum,
+        )
+
+        var id uint
+        var processedAt time.Time
+        err = row.Scan(&amp;id, &amp;processedAt)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">err = tx.Commit()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;app.Withdrawal{
+                ID:          id,
+                UserID:      userID,
+                OrderNumber: orderNumber,
+                Sum:         sum,
+                ProcessedAt: processedAt,
+        }, nil</span>
+}
+
+func (ar *AppRepo) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) <span class="cov8" title="1">{
+        rows, err := ar.db.QueryContext(
+                ctx,
+                GetWithdrawalsQuery,
+                userID,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        withdrawals := []*app.Withdrawal{}
+        for rows.Next() </span><span class="cov8" title="1">{
+                var (
+                        id          uint
+                        orderNumber string
+                        sum         float64
+                        processedAt time.Time
+                )
+
+                err = rows.Scan(
+                        &amp;id,
+                        &amp;orderNumber,
+                        &amp;sum,
+                        &amp;processedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">withdrawals = append(withdrawals, &amp;app.Withdrawal{
+                        ID:          id,
+                        UserID:      userID,
+                        OrderNumber: orderNumber,
+                        Sum:         sum,
+                        ProcessedAt: processedAt,
+                })</span>
+        }
+
+        <span class="cov8" title="1">err = rows.Err()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return withdrawals, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: internal/app/usecase/usecase.go
+
+// Package mocks is a generated GoMock package.
+package mocks
+
+import (
+        context "context"
+        reflect "reflect"
+
+        accrual "github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
+        app "github.com/MisterMaks/go-yandex-gophermart/internal/app"
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockAppRepoInterface is a mock of AppRepoInterface interface.
+type MockAppRepoInterface struct {
+        ctrl     *gomock.Controller
+        recorder *MockAppRepoInterfaceMockRecorder
+}
+
+// MockAppRepoInterfaceMockRecorder is the mock recorder for MockAppRepoInterface.
+type MockAppRepoInterfaceMockRecorder struct {
+        mock *MockAppRepoInterface
+}
+
+// NewMockAppRepoInterface creates a new mock instance.
+func NewMockAppRepoInterface(ctrl *gomock.Controller) *MockAppRepoInterface <span class="cov8" title="1">{
+        mock := &amp;MockAppRepoInterface{ctrl: ctrl}
+        mock.recorder = &amp;MockAppRepoInterfaceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAppRepoInterface) EXPECT() *MockAppRepoInterfaceMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// AuthUser mocks base method.
+func (m *MockAppRepoInterface) AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "AuthUser", ctx, login, passwordHash)
+        ret0, _ := ret[0].(*app.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// AuthUser indicates an expected call of AuthUser.
+func (mr *MockAppRepoInterfaceMockRecorder) AuthUser(ctx, login, passwordHash interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthUser", reflect.TypeOf((*MockAppRepoInterface)(nil).AuthUser), ctx, login, passwordHash)
+}</span>
+
+// CreateOrder mocks base method.
+func (m *MockAppRepoInterface) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateOrder", ctx, userID, number)
+        ret0, _ := ret[0].(*app.Order)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateOrder indicates an expected call of CreateOrder.
+func (mr *MockAppRepoInterfaceMockRecorder) CreateOrder(ctx, userID, number interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockAppRepoInterface)(nil).CreateOrder), ctx, userID, number)
+}</span>
+
+// CreateUser mocks base method.
+func (m *MockAppRepoInterface) CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateUser", ctx, login, passwordHash)
+        ret0, _ := ret[0].(*app.User)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockAppRepoInterfaceMockRecorder) CreateUser(ctx, login, passwordHash interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockAppRepoInterface)(nil).CreateUser), ctx, login, passwordHash)
+}</span>
+
+// CreateWithdrawal mocks base method.
+func (m *MockAppRepoInterface) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateWithdrawal", ctx, userID, orderNumber, sum)
+        ret0, _ := ret[0].(*app.Withdrawal)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateWithdrawal indicates an expected call of CreateWithdrawal.
+func (mr *MockAppRepoInterfaceMockRecorder) CreateWithdrawal(ctx, userID, orderNumber, sum interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdrawal", reflect.TypeOf((*MockAppRepoInterface)(nil).CreateWithdrawal), ctx, userID, orderNumber, sum)
+}</span>
+
+// GetBalance mocks base method.
+func (m *MockAppRepoInterface) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetBalance", ctx, userID)
+        ret0, _ := ret[0].(*app.Balance)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetBalance indicates an expected call of GetBalance.
+func (mr *MockAppRepoInterfaceMockRecorder) GetBalance(ctx, userID interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockAppRepoInterface)(nil).GetBalance), ctx, userID)
+}</span>
+
+// GetNewOrders mocks base method.
+func (m *MockAppRepoInterface) GetNewOrders(ctx context.Context) ([]*app.Order, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetNewOrders", ctx)
+        ret0, _ := ret[0].([]*app.Order)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetNewOrders indicates an expected call of GetNewOrders.
+func (mr *MockAppRepoInterfaceMockRecorder) GetNewOrders(ctx interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewOrders", reflect.TypeOf((*MockAppRepoInterface)(nil).GetNewOrders), ctx)
+}</span>
+
+// GetOrders mocks base method.
+func (m *MockAppRepoInterface) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetOrders", ctx, userID)
+        ret0, _ := ret[0].([]*app.Order)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetOrders indicates an expected call of GetOrders.
+func (mr *MockAppRepoInterfaceMockRecorder) GetOrders(ctx, userID interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockAppRepoInterface)(nil).GetOrders), ctx, userID)
+}</span>
+
+// GetWithdrawals mocks base method.
+func (m *MockAppRepoInterface) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetWithdrawals", ctx, userID)
+        ret0, _ := ret[0].([]*app.Withdrawal)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetWithdrawals indicates an expected call of GetWithdrawals.
+func (mr *MockAppRepoInterfaceMockRecorder) GetWithdrawals(ctx, userID interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawals", reflect.TypeOf((*MockAppRepoInterface)(nil).GetWithdrawals), ctx, userID)
+}</span>
+
+// UpdateOrder mocks base method.
+func (m *MockAppRepoInterface) UpdateOrder(ctx context.Context, order *app.Order) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UpdateOrder", ctx, order)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// UpdateOrder indicates an expected call of UpdateOrder.
+func (mr *MockAppRepoInterfaceMockRecorder) UpdateOrder(ctx, order interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrder", reflect.TypeOf((*MockAppRepoInterface)(nil).UpdateOrder), ctx, order)
+}</span>
+
+// MockAccrualSystemClientInterface is a mock of AccrualSystemClientInterface interface.
+type MockAccrualSystemClientInterface struct {
+        ctrl     *gomock.Controller
+        recorder *MockAccrualSystemClientInterfaceMockRecorder
+}
+
+// MockAccrualSystemClientInterfaceMockRecorder is the mock recorder for MockAccrualSystemClientInterface.
+type MockAccrualSystemClientInterfaceMockRecorder struct {
+        mock *MockAccrualSystemClientInterface
+}
+
+// NewMockAccrualSystemClientInterface creates a new mock instance.
+func NewMockAccrualSystemClientInterface(ctrl *gomock.Controller) *MockAccrualSystemClientInterface <span class="cov8" title="1">{
+        mock := &amp;MockAccrualSystemClientInterface{ctrl: ctrl}
+        mock.recorder = &amp;MockAccrualSystemClientInterfaceMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAccrualSystemClientInterface) EXPECT() *MockAccrualSystemClientInterfaceMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// GetOrderInfo mocks base method.
+func (m *MockAccrualSystemClientInterface) GetOrderInfo(ctx context.Context, number string) (accrual.OrderInfo, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetOrderInfo", ctx, number)
+        ret0, _ := ret[0].(accrual.OrderInfo)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetOrderInfo indicates an expected call of GetOrderInfo.
+func (mr *MockAccrualSystemClientInterfaceMockRecorder) GetOrderInfo(ctx, number interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderInfo", reflect.TypeOf((*MockAccrualSystemClientInterface)(nil).GetOrderInfo), ctx, number)
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package usecase
+
+import (
+        "context"
+        "crypto/hmac"
+        "crypto/sha256"
+        "database/sql"
+        "errors"
+        "fmt"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
+        "github.com/MisterMaks/go-yandex-gophermart/internal/app"
+        loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+        "github.com/golang-jwt/jwt/v4"
+        "github.com/google/uuid"
+        "github.com/jackc/pgx/v5/pgconn"
+        "go.uber.org/zap"
+        "regexp"
+        "strconv"
+        "time"
+)
+
+var (
+        ErrEmptyPasswordKey = errors.New("empty password key")
+        ErrEmptyTokenKey    = errors.New("empty token key")
+)
+
+type AppRepoInterface interface {
+        CreateUser(ctx context.Context, login, passwordHash string) (*app.User, error)
+        AuthUser(ctx context.Context, login, passwordHash string) (*app.User, error)
+        CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error)
+        UpdateOrder(ctx context.Context, order *app.Order) error
+        GetOrders(ctx context.Context, userID uint) ([]*app.Order, error)
+        GetNewOrders(ctx context.Context) ([]*app.Order, error)
+        GetBalance(ctx context.Context, userID uint) (*app.Balance, error)
+        CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error)
+        GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error)
+}
+
+type AccrualSystemClientInterface interface {
+        GetOrderInfo(ctx context.Context, number string) (accrual.OrderInfo, error)
+}
+
+type AppUsecase struct {
+        AppRepo AppRepoInterface
+
+        AccrualSystemClient AccrualSystemClientInterface
+
+        minLoginLen    uint
+        passwordKey    string
+        minPasswordLen uint
+
+        tokenKey string
+        tokenExp time.Duration
+
+        processOrdersChan            chan *app.Order
+        processOrdersTicker          *time.Ticker
+        updateExistedNewOrdersTicker *time.Ticker
+        processOrdersCtx             context.Context
+        processOrdersCtxCancel       context.CancelFunc
+}
+
+func NewAppUsecase(
+        appRepo AppRepoInterface,
+        accrualSystemClient AccrualSystemClientInterface,
+        minLoginLen uint,
+        passwordKey string,
+        minPasswordLen uint,
+        tokenKey string,
+        tokenExp time.Duration,
+        processOrderChanSize uint,
+        processOrderWaitingTime time.Duration,
+        updateExistedNewOrdersWaitingTime time.Duration,
+) (*AppUsecase, error) <span class="cov8" title="1">{
+        if passwordKey == "" </span><span class="cov8" title="1">{
+                return nil, ErrEmptyPasswordKey
+        }</span>
+        <span class="cov8" title="1">if tokenKey == "" </span><span class="cov8" title="1">{
+                return nil, ErrEmptyTokenKey
+        }</span>
+
+        <span class="cov8" title="1">processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+
+        appUsecase := &amp;AppUsecase{
+                AppRepo: appRepo,
+
+                AccrualSystemClient: accrualSystemClient,
+
+                minLoginLen:    minLoginLen,
+                passwordKey:    passwordKey,
+                minPasswordLen: minPasswordLen,
+
+                tokenKey: tokenKey,
+                tokenExp: tokenExp,
+
+                processOrdersChan:            make(chan *app.Order, processOrderChanSize),
+                processOrdersTicker:          time.NewTicker(processOrderWaitingTime),
+                updateExistedNewOrdersTicker: time.NewTicker(updateExistedNewOrdersWaitingTime),
+                processOrdersCtx:             processOrderCtx,
+                processOrdersCtxCancel:       processOrderCtxCancel,
+        }
+
+        go appUsecase.worker()
+        go appUsecase.deferredWorker()
+
+        return appUsecase, nil</span>
+}
+
+func (au *AppUsecase) Close() <span class="cov8" title="1">{
+        au.processOrdersCtxCancel()
+        close(au.processOrdersChan)
+}</span>
+
+func (au *AppUsecase) processOrders(ctx context.Context, orders []*app.Order) <span class="cov8" title="1">{
+        logger := loggerInternal.GetContextLogger(ctx)
+        for _, order := range orders </span><span class="cov8" title="1">{
+                orderInfo, err := au.AccrualSystemClient.GetOrderInfo(ctx, order.Number)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.Warn("Failed to get order info", zap.Any("order", order), zap.Error(err))
+                        switch err </span>{
+                        case accrual.ErrTooManyRequests:<span class="cov0" title="0">
+                                break</span>
+                        case accrual.ErrInternalServerError:<span class="cov0" title="0">
+                                break</span>
+                        case accrual.ErrOrderNotRegistered:<span class="cov0" title="0">
+                                continue</span>
+                        default:<span class="cov0" title="0">
+                                continue</span>
+                        }
+                }
+
+                <span class="cov8" title="1">switch orderInfo.Status </span>{
+                case "REGISTERED":<span class="cov8" title="1">
+                        continue</span>
+                case "INVALID":<span class="cov8" title="1">
+                        order.Status = "INVALID"</span>
+                case "PROCESSING":<span class="cov8" title="1">
+                        order.Status = "PROCESSING"</span>
+                case "PROCESSED":<span class="cov8" title="1">
+                        order.Status = "PROCESSED"
+                        order.Accrual = orderInfo.Accrual</span>
+                default:<span class="cov0" title="0">
+                        logger.Error("Unknown order status", zap.Any("order", order), zap.Any("order_info", orderInfo))
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">err = au.AppRepo.UpdateOrder(ctx, order)
+                if err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+        }
+}
+
+func (au *AppUsecase) worker() <span class="cov8" title="1">{
+        logger := loggerInternal.Log
+
+        orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-au.processOrdersCtx.Done():<span class="cov8" title="1">
+                        return</span>
+                case order := &lt;-au.processOrdersChan:<span class="cov8" title="1">
+                        orders = append(orders, order)</span>
+                case &lt;-au.processOrdersTicker.C:<span class="cov8" title="1">
+                        if len(orders) == 0 </span><span class="cov8" title="1">{
+                                continue</span>
+                        }
+
+                        <span class="cov8" title="1">logger.Info("Process orders")
+
+                        iterationID := uuid.New().String()
+                        ctxLogger := logger.With(
+                                zap.String("process_order_iteration_id", iterationID),
+                        )
+                        ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, ctxLogger)
+
+                        au.processOrders(ctx, orders)
+                        orders = orders[:0]</span>
+                }
+        }
+}
+
+func (au *AppUsecase) deferredWorker() <span class="cov8" title="1">{
+        logger := loggerInternal.Log
+Loop:
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-au.processOrdersCtx.Done():<span class="cov8" title="1">
+                        return</span>
+                case &lt;-au.updateExistedNewOrdersTicker.C:<span class="cov8" title="1">
+                        iterationID := uuid.New().String()
+                        logger = logger.With(
+                                zap.String("update_existed_new_orders_iteration_id", iterationID),
+                        )
+                        ctx := context.WithValue(context.Background(), loggerInternal.LoggerKey, logger)
+
+                        logger.Info("Update existed new orders")
+
+                        orders, err := au.AppRepo.GetNewOrders(ctx)
+                        if err != nil </span><span class="cov0" title="0">{
+                                continue Loop</span>
+                        }
+                        <span class="cov8" title="1">au.processOrders(ctx, orders)</span>
+                }
+        }
+}
+
+func (au *AppUsecase) hashPassword(password string) string <span class="cov8" title="1">{
+        // подписываем алгоритмом HMAC, используя SHA-256
+        h := hmac.New(sha256.New, []byte(au.passwordKey))
+        h.Write([]byte(password))
+        passwordHash := h.Sum(nil)
+
+        passwordHashStr := fmt.Sprintf("%x", passwordHash)
+
+        return passwordHashStr
+}</span>
+
+func (au *AppUsecase) checkLogin(login string) (bool, error) <span class="cov8" title="1">{
+        if uint(len(login)) &lt; au.minLoginLen </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+        <span class="cov8" title="1">okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, login)
+        return !okInvalidSymbols, err</span>
+}
+
+func (au *AppUsecase) checkPassword(password string) (bool, error) <span class="cov8" title="1">{
+        if uint(len(password)) &lt; au.minLoginLen </span><span class="cov0" title="0">{
+                return false, nil
+        }</span>
+        <span class="cov8" title="1">okInvalidSymbols, err := regexp.MatchString(`[^\w\.\-]+`, password)
+        return !okInvalidSymbols, err</span>
+}
+
+func (au *AppUsecase) Register(ctx context.Context, login, password string) (*app.User, error) <span class="cov8" title="1">{
+        ok, err := au.checkLogin(login)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidLoginPasswordFormat
+        }</span>
+
+        <span class="cov8" title="1">ok, err = au.checkPassword(password)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidLoginPasswordFormat
+        }</span>
+
+        <span class="cov8" title="1">passwordHash := au.hashPassword(password)
+        user, err := au.AppRepo.CreateUser(ctx, login, passwordHash)
+        var pgErr *pgconn.PgError
+        if errors.As(err, &amp;pgErr) </span><span class="cov8" title="1">{
+                switch </span>{
+                case pgErr.Code == "23505" &amp;&amp; pgErr.Message == "duplicate key value violates unique constraint \"user_login_key\"":<span class="cov8" title="1">
+                        return nil, app.ErrLoginTaken</span>
+                case pgErr.Code == "23514" &amp;&amp; pgErr.Message == "new row for relation \"user\" violates check constraint \"user_login_check\"":<span class="cov0" title="0">
+                        return nil, app.ErrInvalidLoginPasswordFormat</span>
+                default:<span class="cov0" title="0">
+                        return nil, err</span>
+                }
+        }
+        <span class="cov8" title="1">return user, err</span>
+}
+
+func (au *AppUsecase) Login(ctx context.Context, login, password string) (*app.User, error) <span class="cov8" title="1">{
+        ok, err := au.checkLogin(login)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidLoginPasswordFormat
+        }</span>
+
+        <span class="cov8" title="1">ok, err = au.checkPassword(password)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidLoginPasswordFormat
+        }</span>
+
+        <span class="cov8" title="1">passwordHash := au.hashPassword(password)
+        user, err := au.AppRepo.AuthUser(ctx, login, passwordHash)
+        if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidLoginPassword
+        }</span>
+        <span class="cov8" title="1">return user, err</span>
+}
+
+type Claims struct {
+        jwt.RegisteredClaims
+        UserID uint
+}
+
+func (au *AppUsecase) BuildJWTString(ctx context.Context, userID uint) (string, error) <span class="cov8" title="1">{
+        // создаём новый токен с алгоритмом подписи HS256 и утверждениями — Claims
+        token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+                RegisteredClaims: jwt.RegisteredClaims{
+                        // когда создан токен
+                        ExpiresAt: jwt.NewNumericDate(time.Now().Add(au.tokenExp)),
+                },
+                // собственное утверждение
+                UserID: userID,
+        })
+
+        // создаём строку токена
+        tokenString, err := token.SignedString([]byte(au.tokenKey))
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        // возвращаем строку токена
+        <span class="cov8" title="1">return tokenString, nil</span>
+}
+
+func (au *AppUsecase) GetUserID(token string) (uint, error) <span class="cov8" title="1">{
+        // создаём экземпляр структуры с утверждениями
+        claims := &amp;Claims{}
+        // парсим из строки токена tokenString в структуру claims
+        _, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) </span><span class="cov8" title="1">{
+                return []byte(au.tokenKey), nil
+        }</span>)
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        // возвращаем ID пользователя в читаемом виде
+        <span class="cov8" title="1">return claims.UserID, nil</span>
+}
+
+func luhnAlgorithm(number string) (bool, error) <span class="cov8" title="1">{
+        size := len(number)
+
+        coef := 0
+        if size%2 != 0 </span><span class="cov8" title="1">{
+                coef = 1
+        }</span>
+
+        <span class="cov8" title="1">sum := 0
+        for i, digitRune := range number </span><span class="cov8" title="1">{
+                digit, err := strconv.Atoi(string(digitRune))
+                if err != nil </span><span class="cov8" title="1">{
+                        return false, err
+                }</span>
+
+                <span class="cov8" title="1">if (i+coef)%2 == 0 </span><span class="cov8" title="1">{
+                        digit *= 2
+                        if digit &gt; 9 </span><span class="cov8" title="1">{
+                                digit -= 9
+                        }</span>
+                }
+
+                <span class="cov8" title="1">sum += digit</span>
+        }
+
+        <span class="cov8" title="1">if sum%10 != 0 </span><span class="cov8" title="1">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">return true, nil</span>
+}
+
+func (au *AppUsecase) CreateOrder(ctx context.Context, userID uint, number string) (*app.Order, error) <span class="cov8" title="1">{
+        ok, err := luhnAlgorithm(number)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidOrderNumber
+        }</span>
+
+        <span class="cov8" title="1">order, err := au.AppRepo.CreateOrder(ctx, userID, number)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                        return nil, app.ErrOrderUploaded
+                }</span>
+
+                <span class="cov8" title="1">var pgErr *pgconn.PgError
+                if errors.As(err, &amp;pgErr) </span><span class="cov8" title="1">{
+                        switch </span>{
+                        case pgErr.Code == "23505" &amp;&amp; pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":<span class="cov8" title="1">
+                                return nil, app.ErrOrderUploadedByAnotherUser</span>
+                        default:<span class="cov0" title="0">
+                                return nil, err</span>
+                        }
+                }
+
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                select </span>{
+                case au.processOrdersChan &lt;- order:<span class="cov8" title="1"></span>
+                case &lt;-au.processOrdersCtx.Done():<span class="cov0" title="0">
+                        return</span>
+                }
+        }()
+
+        <span class="cov8" title="1">return order, nil</span>
+}
+
+func (au *AppUsecase) GetOrders(ctx context.Context, userID uint) ([]*app.Order, error) <span class="cov0" title="0">{
+        return au.AppRepo.GetOrders(ctx, userID)
+}</span>
+
+func (au *AppUsecase) GetBalance(ctx context.Context, userID uint) (*app.Balance, error) <span class="cov0" title="0">{
+        return au.AppRepo.GetBalance(ctx, userID)
+}</span>
+
+func (au *AppUsecase) CreateWithdrawal(ctx context.Context, userID uint, orderNumber string, sum float64) (*app.Withdrawal, error) <span class="cov8" title="1">{
+        ok, err := luhnAlgorithm(orderNumber)
+        if !ok || err != nil </span><span class="cov8" title="1">{
+                return nil, app.ErrInvalidOrderNumber
+        }</span>
+
+        <span class="cov8" title="1">withdrawal, err := au.AppRepo.CreateWithdrawal(ctx, userID, orderNumber, sum)
+
+        if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                return nil, app.ErrOrderUploaded
+        }</span>
+
+        <span class="cov8" title="1">var pgErr *pgconn.PgError
+        if errors.As(err, &amp;pgErr) </span><span class="cov8" title="1">{
+                switch </span>{
+                case pgErr.Code == "23514" &amp;&amp; pgErr.Message == "new row for relation \"balance\" violates check constraint \"balance_current_check\"":<span class="cov8" title="1">
+                        return nil, app.ErrInsufficientFunds</span>
+                case pgErr.Code == "23505" &amp;&amp; pgErr.Message == "duplicate key value violates unique constraint \"withdrawal_order_number_key\"":<span class="cov8" title="1">
+                        return nil, app.ErrOrderUploadedByAnotherUser</span>
+                default:<span class="cov0" title="0">
+                        return nil, err</span>
+                }
+        }
+
+        <span class="cov8" title="1">return withdrawal, err</span>
+}
+
+func (au *AppUsecase) GetWithdrawals(ctx context.Context, userID uint) ([]*app.Withdrawal, error) <span class="cov0" title="0">{
+        return au.AppRepo.GetWithdrawals(ctx, userID)
+}</span>
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package logger
+
+import (
+        "context"
+        "net/http"
+        "time"
+
+        "github.com/google/uuid"
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+var Log *zap.Logger = zap.NewNop()
+
+type ContextRequestIDKeyType string
+type LoggerKeyType string
+
+const (
+        MethodKey            string        = "method"
+        URIKey               string        = "uri"
+        RequestIDKey         string        = "request_id"
+        ExecutionDurationKey string        = "execution_duration"
+        StatusCodeKey        string        = "status_code"
+        ResponseBodySizeBKey string        = "response_body_size_B"
+        LoggerKey            LoggerKeyType = "logger_key"
+)
+
+func Initialize(level string) error <span class="cov0" title="0">{
+        // преобразуем текстовый уровень логирования в zap.AtomicLevel
+        lvl, err := zap.ParseAtomicLevel(level)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // создаём новую конфигурацию логера
+        <span class="cov0" title="0">cfg := zap.NewProductionConfig()
+        // устанавливаем уровень
+        cfg.Level = lvl
+        cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
+        // создаём логер на основе конфигурации
+        zl, err := cfg.Build()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // устанавливаем синглтон
+        <span class="cov0" title="0">Log = zl
+        return nil</span>
+}
+
+func generateRequestID() string <span class="cov0" title="0">{
+        id := uuid.New()
+        return id.String()
+}</span>
+
+type LoggerResponseWriter struct {
+        http.ResponseWriter
+        bodySize   int
+        statusCode int
+}
+
+func (lrw *LoggerResponseWriter) WriteHeader(statusCode int) <span class="cov0" title="0">{
+        lrw.ResponseWriter.WriteHeader(statusCode)
+        lrw.statusCode = statusCode
+}</span>
+
+func (lrw *LoggerResponseWriter) Write(bytes []byte) (int, error) <span class="cov0" title="0">{
+        bodySize, err := lrw.ResponseWriter.Write(bytes)
+        lrw.bodySize = bodySize
+        return bodySize, err
+}</span>
+
+func RequestLoggerMiddleware(h http.Handler) http.Handler <span class="cov0" title="0">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                requestID := generateRequestID()
+                lrw := &amp;LoggerResponseWriter{ResponseWriter: w}
+                Log.Info("got incoming HTTP request",
+                        zap.String(MethodKey, r.Method),
+                        zap.Any(URIKey, r.RequestURI),
+                        zap.String(RequestIDKey, requestID),
+                )
+                ctxLogger := Log.With(
+                        zap.String(RequestIDKey, requestID),
+                )
+                ctx := context.WithValue(r.Context(), LoggerKey, ctxLogger)
+                now := time.Now()
+                h.ServeHTTP(lrw, r.WithContext(ctx))
+                Log.Info("processed incoming HTTP request",
+                        zap.Int(StatusCodeKey, lrw.statusCode),
+                        zap.Int(ResponseBodySizeBKey, lrw.bodySize),
+                        zap.Duration(ExecutionDurationKey, time.Since(now)),
+                        zap.String(RequestIDKey, requestID),
+                )
+        }</span>)
+}
+
+func GetContextLogger(ctx context.Context) *zap.Logger <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov0" title="0">{
+                return Log
+        }</span>
+        <span class="cov8" title="1">logger, ok := ctx.Value(LoggerKey).(*zap.Logger)
+        if !ok || logger == nil </span><span class="cov8" title="1">{
+                return Log
+        }</span>
+        <span class="cov8" title="1">return logger</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
