@@ -26,6 +26,6 @@ jobs:
 
       - name: Run tests
         run: |
-          go test -coverprofile=coverage.txt
+          go test ./... -coverprofile=coverage.txt
         env:
           TEST_DATABASE_URI: "postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
