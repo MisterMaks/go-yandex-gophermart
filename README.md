@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/github/MisterMaks/go-yandex-gophermart/graph/badge.svg?token=N7JMA1QN41)](https://codecov.io/github/MisterMaks/go-yandex-gophermart)
+
 # go-musthave-diploma-tpl
 
 Шаблон репозитория для индивидуального дипломного проекта курса «Go-разработчик»
