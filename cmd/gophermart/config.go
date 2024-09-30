@@ -17,6 +17,7 @@ type Config struct {
 	MinPasswordLen                    uint          `env:"MIN_PASSWORD_LEN"`
 	TokenKey                          string        `env:"TOKEN_KEY"`
 	TokenExpiration                   time.Duration `env:"TOKEN_EXPIRATION"`
+	CountWorkers                      uint          `env:"COUNT_WORKERS"`
 	ProcessOrderChanSize              uint          `env:"PROCESS_ORDER_CHAN_SIZE"`
 	ProcessOrderWaitingTime           time.Duration `env:"PROCESS_ORDER_WAITING_TIME"`
 	UpdateExistedNewOrdersWaitingTime time.Duration `env:"UPDATE_EXISTED_ORDERS_WAITING_TIME"`
@@ -36,6 +37,7 @@ func NewConfig() (*Config, error) {
 	flag.UintVar(&config.MinPasswordLen, "mpl", MinPasswordLen, "Minimum password length")
 	flag.StringVar(&config.TokenKey, "tk", "", "Token key")
 	flag.DurationVar(&config.TokenExpiration, "te", TokenExpiration, "Token expiration")
+	flag.UintVar(&config.CountWorkers, "cw", CountWorkers, "Process order chan size")
 	flag.UintVar(&config.ProcessOrderChanSize, "pocs", ProcessOrderChanSize, "Process order chan size")
 	flag.DurationVar(&config.ProcessOrderWaitingTime, "powt", ProcessOrderWaitingTime, "Process order waiting time")
 	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", UpdateExistedNewOrdersWaitingTime, "Update existed new orders waiting Time")

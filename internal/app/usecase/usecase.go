@@ -20,6 +20,11 @@ import (
 )
 
 var (
+	WorkerNumKey      = "worker_num"
+	WorkerTypeKey     = "worker_type"
+	WorkerKey         = "worker"
+	DeferredWorkerKey = "deferred_worker"
+
 	ErrEmptyPasswordKey = errors.New("empty password key")
 	ErrEmptyTokenKey    = errors.New("empty token key")
 )
@@ -67,6 +72,7 @@ func NewAppUsecase(
 	minPasswordLen uint,
 	tokenKey string,
 	tokenExp time.Duration,
+	countWorkers uint,
 	processOrderChanSize uint,
 	processOrderWaitingTime time.Duration,
 	updateExistedNewOrdersWaitingTime time.Duration,
@@ -99,7 +105,10 @@ func NewAppUsecase(
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.worker()
+	for i := uint(0); i < countWorkers; i++ {
+		go appUsecase.worker(i + 1)
+	}
+
 	go appUsecase.deferredWorker()
 
 	return appUsecase, nil
@@ -151,8 +160,8 @@ func (au *AppUsecase) processOrders(ctx context.Context, orders []*app.Order) {
 	}
 }
 
-func (au *AppUsecase) worker() {
-	logger := loggerInternal.Log
+func (au *AppUsecase) worker(workenNum uint) {
+	logger := loggerInternal.Log.With(zap.Uint(WorkerNumKey, workenNum), zap.String(WorkerTypeKey, WorkerKey))
 
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
 	for {
@@ -181,7 +190,8 @@ func (au *AppUsecase) worker() {
 }
 
 func (au *AppUsecase) deferredWorker() {
-	logger := loggerInternal.Log
+	logger := loggerInternal.Log.With(zap.String(WorkerTypeKey, DeferredWorkerKey))
+
 Loop:
 	for {
 		select {

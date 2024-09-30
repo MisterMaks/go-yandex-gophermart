@@ -29,6 +29,7 @@ func TestNewAppUsecase(t *testing.T) {
 	passwordKey := "12345"
 	tokenKey := "00000"
 	tokenExp := 10 * time.Second
+	countWorkers := uint(1)
 	processOrderChanSize := uint(1)
 	processOrderWaitingTime := time.Second
 	updateExistedNewOrdersWaitingTime := time.Second
@@ -132,6 +133,7 @@ func TestNewAppUsecase(t *testing.T) {
 				tt.args.minPasswordLen,
 				tt.args.tokenKey,
 				tt.args.tokenExp,
+				countWorkers,
 				tt.args.processOrderChanSize,
 				tt.args.processOrderWaitingTime,
 				tt.args.updateExistedNewOrdersWaitingTime,
@@ -633,7 +635,8 @@ func TestAppUsecase_worker(t *testing.T) {
 		processOrdersCtxCancel:       processOrderCtxCancel,
 	}
 
-	go appUsecase.worker()
+	workerNum := uint(1)
+	go appUsecase.worker(workerNum)
 
 	ticker := time.NewTicker(time.Second)
 

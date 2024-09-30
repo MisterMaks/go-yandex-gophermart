@@ -32,6 +32,7 @@ const (
 	TokenKey        = "supersecretkey"
 	TokenExpiration = 15 * time.Minute
 
+	CountWorkers            = 1
 	ProcessOrderChanSize    = 256
 	ProcessOrderWaitingTime = time.Nanosecond
 
@@ -157,6 +158,7 @@ func main() {
 		config.MinPasswordLen,
 		config.TokenKey,
 		config.TokenExpiration,
+		config.CountWorkers,
 		config.ProcessOrderChanSize,
 		config.ProcessOrderWaitingTime,
 		config.UpdateExistedNewOrdersWaitingTime,
