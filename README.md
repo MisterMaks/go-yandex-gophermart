@@ -35,7 +35,14 @@ git fetch template && git checkout template/master .github
 
 # Архитектура
 
-![C1](docs/C1.png "C1 System context diagram")
-![C2](docs/C2.png "C2 Container diagram")
-![C3](docs/C3.png "C3 Component diagram")
-![DB Scheme](docs/db_scheme.png "DB Scheme")
+### C1 System context diagram
+![C1](docs/C1.png)
+
+### C2 Container diagram
+![C2](docs/C2.png)
+
+### C3 Component diagram
+![C3](docs/C3.png)
+
+### DB Scheme
+![DB Scheme](docs/db_scheme.png)
