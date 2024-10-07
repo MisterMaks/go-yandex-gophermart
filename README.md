@@ -25,3 +25,17 @@ git fetch template && git checkout template/master .github
 ```
 
 Затем добавьте полученные изменения в свой репозиторий.
+
+# Описание
+
+- Запустить проект локально (сбилдить и запустить сервис): `make all`
+- Запустить проект в docker: `make dcb`
+- Запустить unit-тесты: `make unit_test`
+- Запустить все тесты, вместе с интеграционными для PostgreSQL: `make test`. Необходимо добавить env `TEST_DATABASE_URI` - это DSN, переменная окружения для подключения к тестовой БД PostgreSQL, на которой пройдут интеграционные тесты. 
+
+# Архитектура
+
+![C1](docs/C1.png "C1 System context diagram")
+![C2](docs/C2.png "C2 Container diagram")
+![C3](docs/C3.png "C3 Component diagram")
+![DB Scheme](docs/db_scheme.png "DB Scheme")
