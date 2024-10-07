@@ -741,6 +741,8 @@ func TestAppUsecase_Register(t *testing.T) {
 	invalidLogin := "invalid_login?"
 	existedLogin := "existed_login"
 	invalidPassword := "invalid_password?"
+	shortLogin := "1"
+	shortPassword := "1"
 
 	user := &app.User{
 		ID:           1,
@@ -807,6 +809,28 @@ func TestAppUsecase_Register(t *testing.T) {
 				err:  app.ErrInvalidLoginPasswordFormat,
 			},
 		},
+		{
+			name: "short login",
+			args: args{
+				login:    shortLogin,
+				password: password,
+			},
+			want: want{
+				user: nil,
+				err:  app.ErrInvalidLoginPasswordFormat,
+			},
+		},
+		{
+			name: "short password",
+			args: args{
+				login:    login,
+				password: shortPassword,
+			},
+			want: want{
+				user: nil,
+				err:  app.ErrInvalidLoginPasswordFormat,
+			},
+		},
 	}
 
 	// создаём контроллер
@@ -832,7 +856,9 @@ func TestAppUsecase_Register(t *testing.T) {
 	appUsecase := &AppUsecase{
 		AppRepo:                      m,
 		AccrualSystemClient:          nil,
+		minLoginLen:                  3,
 		passwordKey:                  "",
+		minPasswordLen:               3,
 		tokenKey:                     "",
 		tokenExp:                     0,
 		processOrdersChan:            nil,
@@ -1236,6 +1262,86 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 	appUsecase.processOrdersCtxCancel()
 }
 
+func TestAppUsecase_GetOrders(t *testing.T) {
+	userID := uint(1)
+
+	order := &app.Order{
+		ID:         1,
+		UserID:     userID,
+		Number:     "1",
+		Status:     "NEW",
+		Accrual:    nil,
+		UploadedAt: time.Now(),
+	}
+
+	orders := []*app.Order{order}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	m.EXPECT().GetOrders(gomock.Any(), userID).Return(orders, nil).AnyTimes()
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	actualOrders, err := appUsecase.GetOrders(context.Background(), userID)
+
+	require.NoError(t, err)
+	assert.Equal(t, orders, actualOrders)
+}
+
+func TestAppUsecase_GetBalance(t *testing.T) {
+	userID := uint(1)
+
+	balance := &app.Balance{
+		ID:        1,
+		UserID:    userID,
+		Current:   100,
+		Withdrawn: 50,
+	}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	m.EXPECT().GetBalance(gomock.Any(), userID).Return(balance, nil).AnyTimes()
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	actualBalance, err := appUsecase.GetBalance(context.Background(), userID)
+
+	require.NoError(t, err)
+	assert.Equal(t, balance, actualBalance)
+}
+
 func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 	userID := uint(1)
 	number := "4561261212345467"
@@ -1386,6 +1492,47 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppUsecase_GetWithdrawals(t *testing.T) {
+	userID := uint(1)
+
+	withdrawal := &app.Withdrawal{
+		ID:          1,
+		UserID:      userID,
+		OrderNumber: "1",
+		Sum:         100,
+		ProcessedAt: time.Now(),
+	}
+
+	withdrawals := []*app.Withdrawal{withdrawal}
+
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	m := mocks.NewMockAppRepoInterface(ctrl)
+
+	m.EXPECT().GetWithdrawals(gomock.Any(), userID).Return(withdrawals, nil).AnyTimes()
+
+	appUsecase := &AppUsecase{
+		AppRepo:                      m,
+		AccrualSystemClient:          nil,
+		passwordKey:                  "",
+		tokenKey:                     "",
+		tokenExp:                     0,
+		processOrdersChan:            nil,
+		processOrdersTicker:          nil,
+		updateExistedNewOrdersTicker: nil,
+		processOrdersCtx:             nil,
+		processOrdersCtxCancel:       nil,
+	}
+
+	actualWithdrawals, err := appUsecase.GetWithdrawals(context.Background(), userID)
+
+	require.NoError(t, err)
+	assert.Equal(t, withdrawals, actualWithdrawals)
 }
 
 func TestLuhnAlgorithm(t *testing.T) {
