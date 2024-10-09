@@ -28,7 +28,7 @@ func NewConfig() (*Config, error) {
 	config := &Config{}
 
 	flag.StringVar(&config.RunAddress, "a", "", "Run address")
-	flag.StringVar(&config.DatabaseURI, "d", "", "Database URI")
+	flag.StringVar(&config.DatabaseURI, "d", "", "Database URI (DSN)")
 	flag.StringVar(&config.AccrualSystemAddress, "r", "", "Accrual system address")
 
 	flag.StringVar(&config.LogLevel, "l", "", "Log level")
@@ -37,10 +37,10 @@ func NewConfig() (*Config, error) {
 	flag.UintVar(&config.MinPasswordLen, "mpl", MinPasswordLen, "Minimum password length")
 	flag.StringVar(&config.TokenKey, "tk", "", "Token key")
 	flag.DurationVar(&config.TokenExpiration, "te", TokenExpiration, "Token expiration")
-	flag.UintVar(&config.CountWorkers, "cw", CountWorkers, "Process order chan size")
+	flag.UintVar(&config.CountWorkers, "cw", CountWorkers, "Count workers")
 	flag.UintVar(&config.ProcessOrderChanSize, "pocs", ProcessOrderChanSize, "Process order chan size")
 	flag.DurationVar(&config.ProcessOrderWaitingTime, "powt", ProcessOrderWaitingTime, "Process order waiting time")
-	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", UpdateExistedNewOrdersWaitingTime, "Update existed new orders waiting Time")
+	flag.DurationVar(&config.UpdateExistedNewOrdersWaitingTime, "uenowt", UpdateExistedNewOrdersWaitingTime, "Update existed new orders waiting time")
 
 	flag.DurationVar(&config.AccrualSystemRequestTimeout, "asrt", AccrualSystemRequestTimeout, "Accrual system request timeout")
 
