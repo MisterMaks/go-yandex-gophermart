@@ -3,6 +3,9 @@ package usecase
 import (
 	"context"
 	"database/sql"
+	"testing"
+	"time"
+
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/mocks"
@@ -11,8 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestNewAppUsecase(t *testing.T) {

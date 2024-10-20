@@ -7,6 +7,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
@@ -15,9 +19,6 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 var (

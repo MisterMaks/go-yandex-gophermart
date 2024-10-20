@@ -3,8 +3,9 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"time"
+
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 )
 
 const (

@@ -3,6 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/MisterMaks/go-yandex-gophermart/internal/accrual"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/gzip"
@@ -13,12 +20,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 const (

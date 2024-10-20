@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (

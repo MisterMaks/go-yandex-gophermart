@@ -3,11 +3,12 @@ package accrual
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
+
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 var (

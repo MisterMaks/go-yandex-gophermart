@@ -2,9 +2,10 @@ package delivery
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 func (ah *AppHandler) AuthMiddleware(h http.Handler) http.Handler {

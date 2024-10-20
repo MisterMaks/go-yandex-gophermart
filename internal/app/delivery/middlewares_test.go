@@ -2,14 +2,15 @@ package delivery
 
 import (
 	"errors"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
+
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app/delivery/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAppHandler_AuthMiddleware(t *testing.T) {

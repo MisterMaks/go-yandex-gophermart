@@ -4,9 +4,10 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"go.uber.org/zap"
-	"log"
 )
 
 const (

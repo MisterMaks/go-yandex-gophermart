@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
-	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
+	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
+	"go.uber.org/zap"
 )
 
 type UserIDKeyType string
