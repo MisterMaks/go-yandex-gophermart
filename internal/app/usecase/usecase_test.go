@@ -7,6 +7,7 @@ import (
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app"
 	"github.com/MisterMaks/go-yandex-gophermart/internal/app/usecase/mocks"
 	"github.com/golang/mock/gomock"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -844,7 +845,7 @@ func TestAppUsecase_Register(t *testing.T) {
 		gomock.Any(),
 	).Return(
 		nil,
-		&pgconn.PgError{Code: "23505", Message: "duplicate key value violates unique constraint \"user_login_key\""},
+		&pgconn.PgError{Code: pgerrcode.UniqueViolation, Message: "duplicate key value violates unique constraint \"user_login_key\""},
 	).AnyTimes()
 
 	appUsecase := &AppUsecase{
@@ -1157,7 +1158,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 	).Return(
 		nil,
 		&pgconn.PgError{
-			Code:    "23505",
+			Code:    pgerrcode.UniqueViolation,
 			Message: "duplicate key value violates unique constraint \"order_number_key\"",
 		},
 	).AnyTimes()
@@ -1366,7 +1367,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 		Return(
 			nil,
 			&pgconn.PgError{
-				Code:    "23505",
+				Code:    pgerrcode.UniqueViolation,
 				Message: "duplicate key value violates unique constraint \"withdrawal_order_number_key\"",
 			},
 		).AnyTimes()
@@ -1374,7 +1375,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 		Return(
 			nil,
 			&pgconn.PgError{
-				Code:    "23514",
+				Code:    pgerrcode.CheckViolation,
 				Message: "new row for relation \"balance\" violates check constraint \"balance_current_check\"",
 			},
 		).AnyTimes()

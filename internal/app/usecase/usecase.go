@@ -12,6 +12,7 @@ import (
 	loggerInternal "github.com/MisterMaks/go-yandex-gophermart/internal/logger"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"regexp"
@@ -259,9 +260,9 @@ func (au *AppUsecase) Register(ctx context.Context, login, password string) (*ap
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch {
-		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"user_login_key\"":
+		case pgErr.Code == pgerrcode.UniqueViolation && pgErr.Message == "duplicate key value violates unique constraint \"user_login_key\"":
 			return nil, app.ErrLoginTaken
-		case pgErr.Code == "23514" && pgErr.Message == "new row for relation \"user\" violates check constraint \"user_login_check\"":
+		case pgErr.Code == pgerrcode.CheckViolation && pgErr.Message == "new row for relation \"user\" violates check constraint \"user_login_check\"":
 			return nil, app.ErrInvalidLoginPasswordFormat
 		default:
 			return nil, err
@@ -377,7 +378,7 @@ func (au *AppUsecase) CreateOrder(ctx context.Context, userID uint, number strin
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch {
-			case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":
+			case pgErr.Code == pgerrcode.UniqueViolation && pgErr.Message == "duplicate key value violates unique constraint \"order_number_key\"":
 				return nil, app.ErrOrderUploadedByAnotherUser
 			default:
 				return nil, err
@@ -421,9 +422,9 @@ func (au *AppUsecase) CreateWithdrawal(ctx context.Context, userID uint, orderNu
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch {
-		case pgErr.Code == "23514" && pgErr.Message == "new row for relation \"balance\" violates check constraint \"balance_current_check\"":
+		case pgErr.Code == pgerrcode.CheckViolation && pgErr.Message == "new row for relation \"balance\" violates check constraint \"balance_current_check\"":
 			return nil, app.ErrInsufficientFunds
-		case pgErr.Code == "23505" && pgErr.Message == "duplicate key value violates unique constraint \"withdrawal_order_number_key\"":
+		case pgErr.Code == pgerrcode.UniqueViolation && pgErr.Message == "duplicate key value violates unique constraint \"withdrawal_order_number_key\"":
 			return nil, app.ErrOrderUploadedByAnotherUser
 		default:
 			return nil, err
