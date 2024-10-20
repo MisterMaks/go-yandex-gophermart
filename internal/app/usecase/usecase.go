@@ -319,7 +319,7 @@ func (au *AppUsecase) GetUserID(token string) (uint, error) {
 	// создаём экземпляр структуры с утверждениями
 	claims := &Claims{}
 	// парсим из строки токена tokenString в структуру claims
-	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, claims, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(au.tokenKey), nil
 	})
 	if err != nil {
