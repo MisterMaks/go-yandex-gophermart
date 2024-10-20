@@ -24,7 +24,7 @@ func TestGzipMiddleware(t *testing.T) {
 	testRequestBodyStr := "If I bring my army into your land, I will destroy your farms, slay your people, and raze your city! (Philip II)"
 	testResponseBodyStr := "If! (This is sparta :) )"
 
-	handler := GzipMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			t.Fatalf("CRITICAL\tUnexpected error. %s: %v. Error: %v\n", RequestBodyKey, r.Body, err)

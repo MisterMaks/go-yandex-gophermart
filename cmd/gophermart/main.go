@@ -175,7 +175,7 @@ func main() {
 	middlewares := &Middlewares{
 		RequestLogger:  logger.RequestLoggerMiddleware,
 		AuthMiddleware: appHandler.AuthMiddleware,
-		GzipMiddleware: gzip.GzipMiddleware,
+		GzipMiddleware: gzip.Middleware,
 	}
 
 	r := router(appHandler, middlewares)
