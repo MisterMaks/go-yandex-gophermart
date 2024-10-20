@@ -60,8 +60,8 @@ type AppUsecase struct {
 	processOrdersChan            chan *app.Order
 	processOrdersTicker          *time.Ticker
 	updateExistedNewOrdersTicker *time.Ticker
-	processOrdersCtx             context.Context
-	processOrdersCtxCancel       context.CancelFunc
+
+	doneCh chan struct{}
 }
 
 func NewAppUsecase(
@@ -84,7 +84,8 @@ func NewAppUsecase(
 		return nil, ErrEmptyTokenKey
 	}
 
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	//processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo: appRepo,
@@ -101,8 +102,8 @@ func NewAppUsecase(
 		processOrdersChan:            make(chan *app.Order, processOrderChanSize),
 		processOrdersTicker:          time.NewTicker(processOrderWaitingTime),
 		updateExistedNewOrdersTicker: time.NewTicker(updateExistedNewOrdersWaitingTime),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+
+		doneCh: doneCh,
 	}
 
 	for i := uint(0); i < countWorkers; i++ {
@@ -115,7 +116,7 @@ func NewAppUsecase(
 }
 
 func (au *AppUsecase) Close() {
-	au.processOrdersCtxCancel()
+	close(au.doneCh)
 	close(au.processOrdersChan)
 }
 
@@ -166,7 +167,7 @@ func (au *AppUsecase) worker(workenNum uint) {
 	orders := make([]*app.Order, 0, 2*len(au.processOrdersChan))
 	for {
 		select {
-		case <-au.processOrdersCtx.Done():
+		case <-au.doneCh:
 			return
 		case order := <-au.processOrdersChan:
 			orders = append(orders, order)
@@ -195,7 +196,7 @@ func (au *AppUsecase) deferredWorker() {
 Loop:
 	for {
 		select {
-		case <-au.processOrdersCtx.Done():
+		case <-au.doneCh:
 			return
 		case <-au.updateExistedNewOrdersTicker.C:
 			iterationID := uuid.New().String()
@@ -388,9 +389,9 @@ func (au *AppUsecase) CreateOrder(ctx context.Context, userID uint, number strin
 
 	go func() {
 		select {
-		case au.processOrdersChan <- order:
-		case <-au.processOrdersCtx.Done():
+		case <-au.doneCh:
 			return
+		case au.processOrdersChan <- order:
 		}
 	}()
 

@@ -34,7 +34,7 @@ func TestNewAppUsecase(t *testing.T) {
 	processOrderWaitingTime := time.Second
 	updateExistedNewOrdersWaitingTime := time.Second
 
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      mockARI,
@@ -45,8 +45,7 @@ func TestNewAppUsecase(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, processOrderChanSize),
 		processOrdersTicker:          time.NewTicker(processOrderWaitingTime),
 		updateExistedNewOrdersTicker: time.NewTicker(updateExistedNewOrdersWaitingTime),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+		doneCh:                       doneCh,
 	}
 
 	type args struct {
@@ -146,8 +145,7 @@ func TestNewAppUsecase(t *testing.T) {
 				assert.Equal(t, len(tt.want.appUsecase.processOrdersChan), len(au.processOrdersChan))
 				assert.NotNil(t, au.processOrdersTicker)
 				assert.NotNil(t, au.updateExistedNewOrdersTicker)
-				assert.NotNil(t, au.processOrdersCtx)
-				assert.NotNil(t, au.processOrdersCtxCancel)
+				assert.NotNil(t, au.doneCh)
 				au.Close()
 			}
 		})
@@ -155,7 +153,7 @@ func TestNewAppUsecase(t *testing.T) {
 }
 
 func TestAppUsecase_Close(t *testing.T) {
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      nil,
@@ -166,8 +164,7 @@ func TestAppUsecase_Close(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+		doneCh:                       doneCh,
 	}
 
 	appUsecase.Close()
@@ -176,7 +173,7 @@ func TestAppUsecase_Close(t *testing.T) {
 	assert.False(t, ok)
 
 	select {
-	case <-appUsecase.processOrdersCtx.Done():
+	case <-appUsecase.doneCh:
 		return
 	case <-time.NewTicker(time.Second).C:
 		assert.Fail(t, "context not closed")
@@ -415,7 +412,7 @@ func TestAppUsecase_processOrders(t *testing.T) {
 		nil,
 	).AnyTimes()
 
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      mockARI,
@@ -426,8 +423,7 @@ func TestAppUsecase_processOrders(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          time.NewTicker(time.Millisecond),
 		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+		doneCh:                       doneCh,
 	}
 
 	for _, tt := range tests {
@@ -620,7 +616,7 @@ func TestAppUsecase_worker(t *testing.T) {
 		nil,
 	).AnyTimes()
 
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      mockARI,
@@ -631,8 +627,7 @@ func TestAppUsecase_worker(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          time.NewTicker(time.Millisecond),
 		updateExistedNewOrdersTicker: time.NewTicker(time.Millisecond),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+		doneCh:                       doneCh,
 	}
 
 	workerNum := uint(1)
@@ -708,7 +703,7 @@ func TestAppUsecase_deferredWorker(t *testing.T) {
 		nil,
 	).AnyTimes()
 
-	processOrderCtx, processOrderCtxCancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	appUsecase := &AppUsecase{
 		AppRepo:                      mockARI,
@@ -719,8 +714,7 @@ func TestAppUsecase_deferredWorker(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          time.NewTicker(time.Nanosecond),
 		updateExistedNewOrdersTicker: time.NewTicker(time.Nanosecond),
-		processOrdersCtx:             processOrderCtx,
-		processOrdersCtxCancel:       processOrderCtxCancel,
+		doneCh:                       doneCh,
 	}
 
 	go appUsecase.deferredWorker()
@@ -864,8 +858,7 @@ func TestAppUsecase_Register(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	for _, tt := range tests {
@@ -969,8 +962,7 @@ func TestAppUsecase_Login(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	// гарантируем, что заглушка
@@ -1028,8 +1020,7 @@ func TestAppUsecase_BuildJWTString(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	for _, tt := range tests {
@@ -1066,8 +1057,7 @@ func TestAppUsecase_GetUserID(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	userID := uint(1)
@@ -1147,7 +1137,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 		UploadedAt: time.Now(),
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -1181,8 +1171,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 		processOrdersChan:            make(chan *app.Order, 1),
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             ctx,
-		processOrdersCtxCancel:       cancel,
+		doneCh:                       doneCh,
 	}
 
 	type args struct {
@@ -1259,7 +1248,7 @@ func TestAppUsecase_CreateOrder(t *testing.T) {
 	}
 
 	close(appUsecase.processOrdersChan)
-	appUsecase.processOrdersCtxCancel()
+	close(appUsecase.doneCh)
 }
 
 func TestAppUsecase_GetOrders(t *testing.T) {
@@ -1294,8 +1283,7 @@ func TestAppUsecase_GetOrders(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	actualOrders, err := appUsecase.GetOrders(context.Background(), userID)
@@ -1332,8 +1320,7 @@ func TestAppUsecase_GetBalance(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	actualBalance, err := appUsecase.GetBalance(context.Background(), userID)
@@ -1401,8 +1388,7 @@ func TestAppUsecase_CreateWithdrawal(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	type args struct {
@@ -1525,8 +1511,7 @@ func TestAppUsecase_GetWithdrawals(t *testing.T) {
 		processOrdersChan:            nil,
 		processOrdersTicker:          nil,
 		updateExistedNewOrdersTicker: nil,
-		processOrdersCtx:             nil,
-		processOrdersCtxCancel:       nil,
+		doneCh:                       nil,
 	}
 
 	actualWithdrawals, err := appUsecase.GetWithdrawals(context.Background(), userID)
