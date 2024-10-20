@@ -149,7 +149,7 @@ func main() {
 		)
 	}
 
-	accrualSystemClient := accrual.NewAccrualSystemClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
+	accrualSystemClient := accrual.NewClient(config.AccrualSystemAddress, config.AccrualSystemRequestTimeout)
 	appUsecase, err := usecase.NewAppUsecase(
 		appRepo,
 		accrualSystemClient,

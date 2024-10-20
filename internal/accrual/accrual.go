@@ -16,15 +16,15 @@ var (
 	ErrInternalServerError = errors.New("internal server error")
 )
 
-type AccrualSystemClient struct {
+type Client struct {
 	client *resty.Client
 }
 
-func NewAccrualSystemClient(accrualSystemAddress string, timeout time.Duration) *AccrualSystemClient {
+func NewClient(accrualSystemAddress string, timeout time.Duration) *Client {
 	client := resty.New()
 	client.SetBaseURL(accrualSystemAddress)
 	client.SetTimeout(timeout)
-	return &AccrualSystemClient{
+	return &Client{
 		client: client,
 	}
 }
@@ -35,7 +35,7 @@ type OrderInfo struct {
 	Accrual *float64 `json:"accrual,omitempty"`
 }
 
-func (asc AccrualSystemClient) GetOrderInfo(ctx context.Context, orderNumber string) (OrderInfo, error) {
+func (asc Client) GetOrderInfo(ctx context.Context, orderNumber string) (OrderInfo, error) {
 	logger := loggerInternal.GetContextLogger(ctx)
 
 	var orderInfo OrderInfo
